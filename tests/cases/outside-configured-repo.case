@@ -1,0 +1,3 @@
+# expect: allow
+# fixture: no-config
+{"sessionId":"s","timestamp":0,"cwd":"$FIXTURE","toolName":"bash","toolArgs":{"command":"git push origin develop"}}

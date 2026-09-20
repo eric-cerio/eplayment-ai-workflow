@@ -1,0 +1,4 @@
+# expect: deny
+# match: force
+# fixture: on-feature
+{"sessionId":"s","timestamp":0,"cwd":"$FIXTURE","toolName":"bash","toolArgs":{"command":"git push -f origin feature/TA-1234"}}

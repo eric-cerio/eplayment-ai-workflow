@@ -1,0 +1,7 @@
+{
+  "hooks": {
+    "preToolUse": [
+      { "type": "command", "bash": "./hooks/guard-rails.sh", "timeoutSec": 10 }
+    ]
+  }
+}

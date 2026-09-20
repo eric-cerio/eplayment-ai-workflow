@@ -1,0 +1,4 @@
+# expect: deny
+# match: versionCode
+# fixture: on-feature
+{"sessionId":"s","timestamp":0,"cwd":"$FIXTURE","toolName":"bash","toolArgs":{"command":"sed -i '' 's/versionCode 60/versionCode 61/' app/build.gradle"}}

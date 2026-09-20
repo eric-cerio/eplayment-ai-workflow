@@ -1,0 +1,3 @@
+# expect: allow
+# fixture: on-feature
+{"sessionId":"s","timestamp":0,"cwd":"$FIXTURE","toolName":"str_replace_editor","toolArgs":{"path":"$FIXTURE/app/build.gradle","old_str":"versionName \"3.4.27\"","new_str":"versionName \"3.4.28\""}}

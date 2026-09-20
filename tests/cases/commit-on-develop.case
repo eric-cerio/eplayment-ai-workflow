@@ -1,0 +1,4 @@
+# expect: deny
+# match: protected
+# fixture: on-develop
+{"sessionId":"s","timestamp":0,"cwd":"$FIXTURE","toolName":"bash","toolArgs":{"command":"git commit -m \"x\""}}

@@ -1,0 +1,4 @@
+# expect: deny
+# match: versionCode
+# fixture: on-feature
+{"sessionId":"s","timestamp":0,"cwd":"$FIXTURE","toolName":"str_replace_editor","toolArgs":{"path":"$FIXTURE/app/build.gradle","old_str":"versionCode 60","new_str":"versionCode 61"}}
