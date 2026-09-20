@@ -1,0 +1,5 @@
+# expect: allow
+# match: post-edit-check-ran
+# fixture: with-post-edit-check
+# hook: post-edit.sh
+{"sessionId":"s","timestamp":0,"cwd":"$FIXTURE","toolName":"edit","toolArgs":{"path":"$FIXTURE/app/src/main/java/ui/Screen.kt"}}

@@ -1,7 +1,18 @@
 {
   "hooks": {
     "preToolUse": [
-      { "type": "command", "bash": "./hooks/guard-rails.sh", "timeoutSec": 10 }
+      {
+        "type": "command",
+        "bash": "./hooks/guard-rails.sh",
+        "timeoutSec": 10
+      }
+    ],
+    "postToolUse": [
+      {
+        "type": "command",
+        "bash": "./hooks/post-edit.sh",
+        "timeoutSec": 30
+      }
     ]
   }
 }

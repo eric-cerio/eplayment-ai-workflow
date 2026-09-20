@@ -1,0 +1,4 @@
+# expect: allow
+# fixture: on-feature
+# hook: post-edit.sh
+{"sessionId":"s","timestamp":0,"cwd":"$FIXTURE","toolName":"edit","toolArgs":{"path":"$FIXTURE/app/build.gradle"}}
