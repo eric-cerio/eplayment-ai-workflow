@@ -167,12 +167,14 @@ git commit -m "docs: record Copilot platform checks for the Android workflow plu
 
 ---
 
-### Task 2: Plugin skeleton and the skill lint
+### Task 2: Plugin skeleton and the skill lint — DONE 2026-09-21
 
 A plugin that installs, one trivially safe skill (stage 10, which only prints), and the lint that every later skill must pass. Written lint-first.
 
+> **Ordering fix found while executing:** the stage-10 skill references `shared/config.md`, so the lint fails until that file exists. `shared/config.md` was written here rather than in Task 5; Task 5 now only adds `shared/ticket-file.md`.
+
 **Files:**
-- Create: `plugin.json`, `README.md`, `tests/lint-skills.sh`
+- Create: `plugin.json`, `README.md`, `tests/lint-skills.sh`, `shared/config.md`
 - Create: `skills/android-dist-note/SKILL.md`, `skills/android-dist-note/reference.md`
 
 **Interfaces:**
@@ -691,34 +693,30 @@ git commit -m "feat: post-edit hook running repo-local checks"
 
 ---
 
-### Task 5: The shared contracts
+### Task 5: The ticket-file contract
 
-The two documents every stage skill reads. Nothing runs yet; this is what stops the same rules being restated thirteen times.
+`shared/config.md` was written in Task 2. This task adds the second document every stage skill reads. Nothing runs yet; this is what stops the same rules being restated thirteen times.
 
 **Files:**
-- Create: `shared/config.md`, `shared/ticket-file.md`
+- Create: `shared/ticket-file.md`
 
 **Interfaces:**
-- Produces: the config key names and the ticket-file field names used by every later task. Copy them verbatim from spec §7 and §6.
+- Produces: the ticket-file field names used by every later task. Copy them verbatim from spec §6.
 
-- [ ] **Step 1: Write `shared/config.md`**
-
-Contents: the full `.ai/project/android-workflow.yml` example from spec §7 (all keys, with the comments); the rule that a missing config stops the run with "run `/android-onboard`"; the JDK resolution order; the `workflow_version` drift rule (print one line suggesting `copilot plugin update`, never block); and the statement that unknown keys are ignored and missing keys take their documented default.
-
-- [ ] **Step 2: Write `shared/ticket-file.md`**
+- [ ] **Step 1: Write `shared/ticket-file.md`**
 
 Contents: the path (`<git-common-dir>/android-workflow/<KEY>.md` via `git rev-parse --git-common-dir`, or the Task 1 fallback), the YAML header example from spec §6, the table of which skill writes which field, how the ticket key is resolved (argument → branch name → ask), and the diff-fingerprint rule: the fingerprint covers the tracked diff against the merge base plus staged and untracked files; `android-commit-push` recomputes it, and a mismatch expires both the security pass and any waivers.
 
-- [ ] **Step 3: Verify the lint still passes and references resolve**
+- [ ] **Step 2: Verify the lint still passes**
 
 Run: `./tests/lint-skills.sh`
-Expected: `skill lint: OK` (the dist-note skill's `../../shared/config.md` reference now resolves).
+Expected: `skill lint: OK`.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
 git add shared
-git commit -m "docs: shared config and ticket-file contracts for the stage skills"
+git commit -m "docs: ticket-file contract for the stage skills"
 ```
 
 ---

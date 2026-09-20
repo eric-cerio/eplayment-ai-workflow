@@ -1,0 +1,7 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "android-workflow",
+  "version": "0.1.0",
+  "description": "Eplayment Android development workflow for Copilot: plan, branch, lint, version, test, security gate, commit and push, distribution note. Every stage runs on its own, or as one chain with /ticket and /bugfix.",
+  "keywords": ["android", "kotlin", "gradle", "workflow", "jira"]
+}
