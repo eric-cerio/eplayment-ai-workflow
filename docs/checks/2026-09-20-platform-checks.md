@@ -5,7 +5,7 @@ Run against Copilot CLI **1.0.85** on macOS 25.4, with a throwaway plugin at `/t
 
 | # | Check | Result |
 |---|---|---|
-| 1 | Plugin visible in Android Studio | **Not yet run** — needs a person at the IDE |
+| 1 | Skills reach Android Studio | **Partly** — repo skills load (asked in words, no slash command); a plugin install can only be tested after publishing |
 | 2 | Hooks fire in the CLI and can deny | **Pass**, after moving `hooks.json` (see below) |
 | 3 | One skill can call another | **Pass** |
 | 4 | A skill can read a sibling skill's file | **Pass** |
