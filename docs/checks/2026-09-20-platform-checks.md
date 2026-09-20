@@ -12,11 +12,35 @@ Run against Copilot CLI **1.0.85** on macOS 25.4, with a throwaway plugin at `/t
 | 5 | Writes inside `.git/` are allowed | **Pass** |
 | 6 | A draft PR without `gh` | **No** — `gh` is the only path, and it is installed here |
 
-## 1. Android Studio — outstanding
+## 1. Android Studio — partly answered, 2026-09-21
 
-Android Studio 2025.3.4 with Copilot plugin 1.11.0 is installed. Someone has to open Copilot Chat
-in agent mode and type `/hello-android`, then check whether `/tmp/hello-plugin-hook.log` grows when
-the agent runs a shell command. Until then the workflow is CLI-verified only.
+**Skills reach Android Studio through the repository, not by slash command.** With
+`.github/skills/hello-android/SKILL.md` in the open project, the IDE agent loaded the skill and
+produced exactly its steps — but only when asked in plain words ("run the hello-android skill").
+`/hello-android` was not offered as a slash command. The same skill is listed by the CLI under
+"Project skills".
+
+**Whether a plugin reaches Android Studio is still unproven**, and two attempts to test it failed
+for reasons of method, not capability:
+
+- Copying a plugin folder into `~/.copilot/installed-plugins/local/` does **not** install it:
+  `copilot plugin list` ignores it, and so did the IDE. Installation is recorded elsewhere.
+- `copilot plugin install` accepts only `plugin@marketplace`, `owner/repo`, or a URL. A
+  `file://` URL to a local bare repo is rejected: "Invalid plugin spec". **So a properly installed
+  plugin cannot be tested until this repository is published to GitHub** (plan Task 16).
+
+The IDE's own policy allows all of it — `CustomAgent: true, CustomHook: true, CustomSkill: true`
+(`idea.log`, `CopilotPolicyServiceImpl`).
+
+**Repo-level hooks were also a bad test.** `.github/hooks/hooks.json` fired nothing in Android
+Studio *or* the CLI, so it proves nothing about the IDE. The SDK does resolve a repo hooks
+directory at `join(gitRoot, ".github", "hooks")`, but it sits behind a `POLICY_HOOKS` feature flag
+and the file convention inside it is not `hooks.json`. The design does not need it: hooks ship with
+the plugin, where they are verified working.
+
+**Consequence for the plan.** Check 1 is answered at publish time (Task 16), not before. Until
+then the rails are CLI-verified only, which matches the decision already taken: if plugin skills
+do not reach Android Studio, v1 is CLI-only, run from the IDE's terminal.
 
 ## 2. Hooks — the path in the docs was wrong
 
