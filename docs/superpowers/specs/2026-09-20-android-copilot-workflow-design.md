@@ -86,16 +86,17 @@ GitHub Copilot plugin **1.11.0**.
 | The Android Studio plugin bundles the same agent runtime as the CLI, including its plugin loader | `copilot-agent/dist/node_modules/@github/copilot/sdk/index.js` contains the `installed-plugins` directory resolver |
 | Plugins are installed from a GitHub repo: `copilot plugin install owner/repo`, updated with `copilot plugin update --all`. There is no version pinning | `copilot plugin install --help`, `copilot plugin update --help` |
 | Skills are discovered from `.github/skills/`, `.agents/skills/`, `.claude/skills/`, `~/.copilot/skills/`, `~/.agents/skills/`, and installed plugins | `copilot skill --help` |
-| A plugin's hooks load from `hooks/hooks.json` (or `hooks.json`) | SDK constants `"hooks.json"`, `"hooks/hooks.json"` |
+| A plugin declaring the v1 `$schema` loads its hooks **only** from `com.github.copilot/hooks/hooks.json` | Verified 2026-09-20: the CLI logged an error and ignored `hooks/hooks.json` until it was moved |
 | A hook entry is `{type: "command", bash, powershell, cwd, env, timeoutSec}` | hook config schema in the SDK |
-| `preToolUse` receives `{sessionId, timestamp, cwd, toolName, toolArgs}` and returns `{permissionDecision: "allow" / "deny" / "ask", permissionDecisionReason}`. A denial reaches the model as `Denied by preToolUse hook: <reason>` | SDK hook dispatch code |
+| `preToolUse` receives `{sessionId, timestamp, cwd, toolName, toolArgs}` — `toolArgs` a nested **object** — and returns `{permissionDecision: "allow" / "deny" / "ask", permissionDecisionReason}`. A denial reaches the model as `Denied by preToolUse hook: <reason>` and it cannot override it | Verified 2026-09-20: `git push origin develop` was blocked |
 | `postToolUse` exists alongside `preToolUse` | same |
 | File-editing tools are named `edit`, `create`, `str_replace_editor`, `apply_patch` | SDK tool definitions |
 | The CLI has a built-in `/security-review` that analyses staged and unstaged changes, plus `/review`, `/diff`, `/pr` | `copilot help commands` |
 
-The name of the shell tool was **not** confirmed. The hook therefore identifies a shell call by the
-presence of a `command` field in `toolArgs`, not by tool name, and check 2 (section 10) logs the
-real names in both surfaces.
+The shell tool is named **`bash`** (verified 2026-09-20; `skill` and `view` were also seen). The hook
+still identifies a shell call by the `command` field in `toolArgs` rather than by name, so a renamed
+or IDE-specific shell tool cannot slip past it. The file-editing names still come from the SDK and
+are confirmed on the first real edit.
 
 ## 5. Shape
 
@@ -396,7 +397,7 @@ Rerunning a chain reads the ticket file and resumes at the first unfinished stag
 
 ## 9. Hooks
 
-`hooks/hooks.json` registers both hooks. Both are plain bash with no `jq` or Python dependency, and
+`com.github.copilot/hooks/hooks.json` registers both hooks. Both are plain bash with no `jq` or Python dependency, and
 both are inert unless the working directory is in a repository that has
 `.ai/project/android-workflow.yml` — the plugin is installed per developer and must not interfere
 with unrelated projects.

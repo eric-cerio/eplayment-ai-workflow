@@ -46,7 +46,7 @@
 | `skills/android-commit-push/{SKILL,reference}.md` | Stage 09, gate 3, draft-PR offer |
 | `skills/android-dist-note/{SKILL,reference}.md` | Stage 10 |
 | `skills/android-onboard/{SKILL,reference}.md` | Writes a repo's config |
-| `hooks/hooks.json` | Registers both hooks |
+| `com.github.copilot/hooks/hooks.json` | Registers both hooks (required path for v1-schema plugins) |
 | `hooks/lib.sh` | Payload parsing, config reading, allow/deny helpers |
 | `hooks/guard-rails.sh` | preToolUse: the four rails |
 | `hooks/post-edit.sh` | postToolUse: repo-local checks |
@@ -58,7 +58,9 @@
 
 ---
 
-### Task 1: Platform checks
+### Task 1: Platform checks — DONE except check 1
+
+> Ran 2026-09-20. Findings: `docs/checks/2026-09-20-platform-checks.md`. Checks 2-6 are settled; check 1 (Android Studio) still needs a person at the IDE.
 
 The six checks from spec §10. Nothing else is built until their findings are written down, because checks 1, 3 and 5 each have a fallback that changes later tasks.
 
@@ -72,7 +74,7 @@ The six checks from spec §10. Nothing else is built until their findings are wr
 - [ ] **Step 1: Build the throwaway plugin**
 
 ```bash
-mkdir -p /tmp/hello-plugin/skills/hello-android /tmp/hello-plugin/skills/hello-caller /tmp/hello-plugin/hooks
+mkdir -p /tmp/hello-plugin/skills/hello-android /tmp/hello-plugin/skills/hello-caller /tmp/hello-plugin/hooks /tmp/hello-plugin/com.github.copilot/hooks
 cat > /tmp/hello-plugin/plugin.json <<'JSON'
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
@@ -100,7 +102,7 @@ description: Verification skill. Use when the user types /hello-caller. Calls th
 1. Invoke the `hello-android` skill and let it run to completion.
 2. Then print exactly: `CALLER-OK`.
 MD
-cat > /tmp/hello-plugin/hooks/hooks.json <<'JSON'
+cat > /tmp/hello-plugin/com.github.copilot/hooks/hooks.json <<'JSON'
 { "hooks": { "preToolUse": [ { "type": "command", "bash": "./hooks/deny.sh", "timeoutSec": 10 } ] } }
 JSON
 cat > /tmp/hello-plugin/hooks/deny.sh <<'SH'
@@ -295,12 +297,12 @@ git commit -m "feat: plugin skeleton, skill lint, and the distribution-note skil
 The four rails, written test-first. This is the one component that can block a developer's git commands, so it gets the fixture-driven test suite.
 
 **Files:**
-- Create: `hooks/lib.sh`, `hooks/guard-rails.sh`, `hooks/hooks.json`
+- Create: `hooks/lib.sh`, `hooks/guard-rails.sh`, `com.github.copilot/hooks/hooks.json`
 - Create: `tests/run.sh`, `tests/fixtures/new-repo.sh`, `tests/cases/*.case` (17 files)
 
 **Interfaces:**
-- Consumes: the shell-tool findings from Task 1.
-- Produces: `hooks/lib.sh` functions used by Task 4 — `payload_field <payload> <key>`, `payload_args <payload>`, `arg_field <args> <key>`, `json_unescape`, `allow`, `deny <reason>`, `repo_root <cwd>`, `has_workflow_config <repo_root>`, `current_branch <repo_root>`, `cfg_list <file> <key>`.
+- Consumes: Task 1's findings. Confirmed 2026-09-20: the shell tool is named `bash`, and `toolArgs` is a nested object.
+- Produces: `hooks/lib.sh` functions used by Task 4 — `payload_field <payload> <key>`, `payload_args <payload>`, `arg_field <args> <key>`, `allow`, `deny <reason>`, `repo_root <cwd>`, `has_workflow_config <repo_root>`, `current_branch <repo_root>`, `cfg_list <file> <key>`.
 
 - [ ] **Step 1: Write the fixture builder**
 
@@ -388,14 +390,14 @@ cat > tests/cases/push-to-develop-explicit.case <<'CASE'
 # expect: deny
 # match: protected
 # fixture: on-feature
-{"sessionId":"s","timestamp":0,"cwd":"$FIXTURE","toolName":"shell","toolArgs":"{\"command\":\"git push origin develop\"}"}
+{"sessionId":"s","timestamp":0,"cwd":"$FIXTURE","toolName":"bash","toolArgs":{"command":"git push origin develop"}}
 CASE
 
 cat > tests/cases/edit-versioncode.case <<'CASE'
 # expect: deny
 # match: versionCode
 # fixture: on-feature
-{"sessionId":"s","timestamp":0,"cwd":"$FIXTURE","toolName":"str_replace_editor","toolArgs":"{\"path\":\"$FIXTURE/app/build.gradle\",\"old_str\":\"versionCode 60\",\"new_str\":\"versionCode 61\"}"}
+{"sessionId":"s","timestamp":0,"cwd":"$FIXTURE","toolName":"str_replace_editor","toolArgs":{"path":"$FIXTURE/app/build.gradle","old_str":"versionCode 60","new_str":"versionCode 61"}}
 CASE
 ```
 
@@ -435,17 +437,16 @@ cat > hooks/lib.sh <<'SH'
 allow() { printf '{}\n'; exit 0; }
 deny()  { printf '{"permissionDecision":"deny","permissionDecisionReason":"%s"}\n' "$(printf '%s' "$1" | sed 's/"/\\"/g')"; exit 0; }
 
-json_unescape() { printf '%s' "$1" | sed -e 's/\\"/"/g' -e 's/\\\\/\\/g' -e 's/\\n/ /g' -e 's/\\t/ /g'; }
-
 # payload_field <payload> <key> — top-level string field.
 payload_field() {
   printf '%s' "$1" | tr -d '\n' | sed -n "s/.*\"$2\"[[:space:]]*:[[:space:]]*\"\(\([^\"\\\\]\|\\\\.\)*\)\".*/\1/p" | head -1
 }
 
-# payload_args <payload> — toolArgs, unescaped (it arrives as a JSON string).
-payload_args() { json_unescape "$(payload_field "$1" toolArgs)"; }
+# payload_args <payload> — the toolArgs object, verbatim.
+# Verified 2026-09-20: toolArgs is a nested JSON OBJECT, not an escaped string.
+payload_args() { printf '%s' "$1" | tr -d '\n' | sed -n 's/.*"toolArgs"[[:space:]]*:[[:space:]]*{\(.*\)}.*/\1/p'; }
 
-# arg_field <args> <key> — string field inside the unescaped tool arguments.
+# arg_field <args> <key> — string field inside the tool arguments.
 arg_field() {
   printf '%s' "$1" | tr -d '\n' | sed -n "s/.*\"$2\"[[:space:]]*:[[:space:]]*\"\(\([^\"\\\\]\|\\\\.\)*\)\".*/\1/p" | head -1
 }
@@ -562,7 +563,8 @@ Expected: `17 passed, 0 failed`. Fix the hook, not the expectations. The most li
 - [ ] **Step 8: Register the hook**
 
 ```bash
-cat > hooks/hooks.json <<'JSON'
+mkdir -p com.github.copilot/hooks
+cat > com.github.copilot/hooks/hooks.json <<'JSON'
 {
   "hooks": {
     "preToolUse": [
@@ -586,7 +588,7 @@ Expected: refused, quoting "protected". Then `rm -rf "$dir"`.
 
 ```bash
 cd /Users/ericcerio/Projects/Eplayment/ai-workflow
-git add hooks tests
+git add hooks com.github.copilot tests
 git commit -m "feat: guard-rails preToolUse hook with fixture-driven tests"
 ```
 
@@ -596,7 +598,7 @@ git commit -m "feat: guard-rails preToolUse hook with fixture-driven tests"
 
 **Files:**
 - Create: `hooks/post-edit.sh`
-- Modify: `hooks/hooks.json`
+- Modify: `com.github.copilot/hooks/hooks.json`
 - Create: `tests/cases/post-edit-runs-check.case`, `tests/cases/post-edit-no-checks.case`
 
 **Interfaces:**
@@ -611,14 +613,14 @@ cat > tests/cases/post-edit-runs-check.case <<'CASE'
 # match: post-edit-check-ran
 # fixture: with-post-edit-check
 # hook: post-edit.sh
-{"sessionId":"s","timestamp":0,"cwd":"$FIXTURE","toolName":"edit","toolArgs":"{\"path\":\"$FIXTURE/app/src/main/java/ui/Screen.kt\"}"}
+{"sessionId":"s","timestamp":0,"cwd":"$FIXTURE","toolName":"edit","toolArgs":{"path":"$FIXTURE/app/src/main/java/ui/Screen.kt"}}
 CASE
 
 cat > tests/cases/post-edit-no-checks.case <<'CASE'
 # expect: allow
 # fixture: on-feature
 # hook: post-edit.sh
-{"sessionId":"s","timestamp":0,"cwd":"$FIXTURE","toolName":"edit","toolArgs":"{\"path\":\"$FIXTURE/app/build.gradle\"}"}
+{"sessionId":"s","timestamp":0,"cwd":"$FIXTURE","toolName":"edit","toolArgs":{"path":"$FIXTURE/app/build.gradle"}}
 CASE
 ```
 
@@ -674,7 +676,7 @@ Expected: `19 passed, 0 failed`.
 
 - [ ] **Step 5: Register it**
 
-Add to `hooks/hooks.json` alongside `preToolUse`:
+Add to `com.github.copilot/hooks/hooks.json` alongside `preToolUse`:
 
 ```json
 "postToolUse": [ { "type": "command", "bash": "./hooks/post-edit.sh", "timeoutSec": 30 } ]
@@ -683,7 +685,7 @@ Add to `hooks/hooks.json` alongside `preToolUse`:
 - [ ] **Step 6: Commit**
 
 ```bash
-git add hooks tests
+git add hooks com.github.copilot tests
 git commit -m "feat: post-edit hook running repo-local checks"
 ```
 
@@ -1044,7 +1046,7 @@ git commit -m "feat: android-security-gate skill (stage 08, gate 2)"
 
 - [ ] **Step 1: Write `reference.md`**
 
-Contents: the commit message format `<KEY>: <name>` with no attribution trailers; the pre-flight list (HEAD not protected; fingerprint matches a recorded pass; nothing staged yet); what the confirmation shows (message, file list, `<branch> → <remote>`); the rule that one confirmation covers stage, commit and push; and the draft-PR behaviour decided by Task 1 — if nothing can create a PR directly, print the exact `/pr` command for the CLI and the compare URL (`<remote-web-url>/compare/<base>...<branch>?expand=1&draft=1`) otherwise.
+Contents: the commit message format `<KEY>: <name>` with no attribution trailers; the pre-flight list (HEAD not protected; fingerprint matches a recorded pass; nothing staged yet); what the confirmation shows (message, file list, `<branch> → <remote>`); the rule that one confirmation covers stage, commit and push; and the draft-PR behaviour settled by check 6 — `gh pr create --base <base_branch> --head <branch> --draft --fill`, which needs a working GitHub credential. If `gh` is missing or its auth fails (an invalid `GITHUB_TOKEN` in the environment overrides the keyring and breaks it), fall back to printing the compare URL `<remote-web-url>/compare/<base>...<branch>?expand=1&draft=1`.
 
 - [ ] **Step 2: Write the skill**
 
@@ -1064,7 +1066,7 @@ Read `../../shared/config.md` and `../../shared/ticket-file.md`, then `reference
 4. **Gate 3.** Show the message, the files that would be committed, and `<branch> → <remote>`, then **stop and wait**. Nothing is staged before the answer. One yes covers stage, commit and push.
 5. Stage exactly those files, commit (no `Co-Authored-By` or other trailers), push the branch. **Never force-push.**
 6. Record `pushed: <sha>`.
-7. **Draft PR.** With `distribution.open_draft_pr: true`, offer it: either open it directly if a tool can, or hand over the exact command and the compare URL. Repeat any security waivers in the summary so the reviewer sees them.
+7. **Draft PR.** With `distribution.open_draft_pr: true`, offer it, then run `gh pr create --base <base_branch> --head <branch> --draft --fill`. If `gh` is missing or unauthenticated, say so and hand over the compare URL instead. Repeat any security waivers in the summary so the reviewer sees them.
 8. Never run Fastlane.
 ```
 
@@ -1306,7 +1308,7 @@ Run these in order, stopping at the first failure and saying which stage stopped
 Never skip a stage. Never do a stage's work yourself: each is a skill and owns its own rules.
 ```
 
-If Task 1 found that a skill **cannot** invoke another, replace "Run these in order" with: "For each stage, read `../<skill>/SKILL.md` (relative to this file) and follow it exactly, in this order" — the stage list and gates stay identical.
+Check 3 passed on 2026-09-20 (a skill invoked a sibling skill, which ran to completion), so the chains invoke the stage skills directly. The read-by-path fallback is not needed.
 
 - [ ] **Step 2: Write `/ticket`**
 
