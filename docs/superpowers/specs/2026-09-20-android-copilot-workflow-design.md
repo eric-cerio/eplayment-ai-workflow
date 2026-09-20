@@ -117,8 +117,9 @@ ai-workflow/                          the plugin repository
 │  ├─ android-commit-push/            stage 09 · gate 3
 │  ├─ android-dist-note/              stage 10
 │  └─ android-onboard/                writes a repo's config
+├─ com.github.copilot/
+│  └─ hooks/hooks.json                registers both hooks (required path)
 ├─ hooks/
-│  ├─ hooks.json                      registers both hooks
 │  ├─ guard-rails.sh                  preToolUse · the four rails
 │  └─ post-edit.sh                    postToolUse · repo-local checks
 ├─ tests/
