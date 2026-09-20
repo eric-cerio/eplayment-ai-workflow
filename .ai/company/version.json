@@ -1,0 +1,12 @@
+{
+  "managed": "Managed centrally by ai-context-structure. Do not edit: the next sync replaces this file. Project context belongs in .ai/project/",
+  "source": ".ai/company",
+  "synced_at": "2026-09-04T00:00:00Z",
+  "files": [
+    "README.md",
+    "ai-instructions.md",
+    "ai-usage-policy.md",
+    "review-and-ownership.md",
+    "security-guardrails.md"
+  ]
+}
