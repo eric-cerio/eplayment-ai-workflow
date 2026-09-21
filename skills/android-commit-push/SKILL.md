@@ -5,10 +5,12 @@ description: Commit and push the current Android ticket's work after showing the
 
 # Commit and push — stage 09 (gate 3)
 
-Read `../../shared/config.md` and `../../shared/ticket-file.md`, then `reference.md` here.
+Read `shared/config.md` and `shared/ticket-file.md`, then `reference.md` here.
 
-> Paths beginning `../../` are **inside this plugin**, relative to this file — not to the
-> repository you are working in. Resolve them from this skill's own directory.
+> **Finding these files:** they live in the **plugin root** — the nearest ancestor directory of
+> this skill file that contains `plugin.json`. Locate that directory first, then read
+> `<plugin-root>/shared/<file>.md`. They are not in the repository you are working in, and not
+> under `skills/`. If you cannot find them, say so and stop rather than continuing without them.
 
 1. **Refuse on a protected branch.** Point at `/android-branch`.
 2. **Require a current security pass.** Recompute the diff fingerprint; if the ticket file has no

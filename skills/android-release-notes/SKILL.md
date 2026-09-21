@@ -5,10 +5,12 @@ description: Update the Android release notes and versionName for the current ti
 
 # Release notes and version — stage 06
 
-Read `../../shared/config.md` and `../../shared/ticket-file.md`, then `reference.md` here.
+Read `shared/config.md` and `shared/ticket-file.md`, then `reference.md` here.
 
-> Paths beginning `../../` are **inside this plugin**, relative to this file — not to the
-> repository you are working in. Resolve them from this skill's own directory.
+> **Finding these files:** they live in the **plugin root** — the nearest ancestor directory of
+> this skill file that contains `plugin.json`. Locate that directory first, then read
+> `<plugin-root>/shared/<file>.md`. They are not in the repository you are working in, and not
+> under `skills/`. If you cannot find them, say so and stop rather than continuing without them.
 
 1. **Resolve the ticket key**: argument → branch name → ask.
 2. **Release notes**: apply `release_notes.mode` to `release_notes.file`, using

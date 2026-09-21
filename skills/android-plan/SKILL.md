@@ -5,10 +5,12 @@ description: Plan an Android feature or bugfix before any code is written - coll
 
 # Plan — stages 01+02 (gate 1)
 
-Read `../../shared/config.md` and `../../shared/ticket-file.md`, then `reference.md` here.
+Read `shared/config.md` and `shared/ticket-file.md`, then `reference.md` here.
 
-> Paths beginning `../../` are **inside this plugin**, relative to this file — not to the
-> repository you are working in. Resolve them from this skill's own directory.
+> **Finding these files:** they live in the **plugin root** — the nearest ancestor directory of
+> this skill file that contains `plugin.json`. Locate that directory first, then read
+> `<plugin-root>/shared/<file>.md`. They are not in the repository you are working in, and not
+> under `skills/`. If you cannot find them, say so and stop rather than continuing without them.
 
 Usage: `/android-plan <KEY> [feature|fix]`. No type given → ask which it is.
 

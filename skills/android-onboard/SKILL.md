@@ -5,11 +5,13 @@ description: Set up an Android repository for the Copilot Android workflow by de
 
 # Onboard a repository
 
-Read `../../shared/config.md` for the file you are writing, then `reference.md` here for how to
+Read `shared/config.md` for the file you are writing, then `reference.md` here for how to
 detect each value.
 
-> Paths beginning `../../` are **inside this plugin**, relative to this file — not to the
-> repository you are working in. Resolve them from this skill's own directory.
+> **Finding these files:** they live in the **plugin root** — the nearest ancestor directory of
+> this skill file that contains `plugin.json`. Locate that directory first, then read
+> `<plugin-root>/shared/<file>.md`. They are not in the repository you are working in, and not
+> under `skills/`. If you cannot find them, say so and stop rather than continuing without them.
 
 1. **Check this is an Android repository.** No Gradle file applying `com.android.application` →
    stop and say so. This workflow is for Android apps.

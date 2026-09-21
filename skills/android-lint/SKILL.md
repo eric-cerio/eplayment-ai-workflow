@@ -5,10 +5,12 @@ description: Format and lint the Kotlin changes on this branch with ktlint, Andr
 
 # Lint and sanitation — stage 05
 
-Read `../../shared/config.md`, then `reference.md` in this folder.
+Read `shared/config.md`, then `reference.md` in this folder.
 
-> Paths beginning `../../` are **inside this plugin**, relative to this file — not to the
-> repository you are working in. Resolve them from this skill's own directory.
+> **Finding these files:** they live in the **plugin root** — the nearest ancestor directory of
+> this skill file that contains `plugin.json`. Locate that directory first, then read
+> `<plugin-root>/shared/<file>.md`. They are not in the repository you are working in, and not
+> under `skills/`. If you cannot find them, say so and stop rather than continuing without them.
 
 1. **Resolve the changed Kotlin files** with the command in `reference.md`. None → say so and stop.
 2. **ktlint**, according to `build.ktlint`.

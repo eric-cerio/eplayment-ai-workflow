@@ -5,10 +5,12 @@ description: Implement an approved Android plan - scaffolding a feature through 
 
 # Development — stage 04 (the developer's call)
 
-Read `../../shared/config.md` and `../../shared/ticket-file.md`, then `reference.md` here.
+Read `shared/config.md` and `shared/ticket-file.md`, then `reference.md` here.
 
-> Paths beginning `../../` are **inside this plugin**, relative to this file — not to the
-> repository you are working in. Resolve them from this skill's own directory.
+> **Finding these files:** they live in the **plugin root** — the nearest ancestor directory of
+> this skill file that contains `plugin.json`. Locate that directory first, then read
+> `<plugin-root>/shared/<file>.md`. They are not in the repository you are working in, and not
+> under `skills/`. If you cannot find them, say so and stop rather than continuing without them.
 
 1. **Require an approved plan.** No `plan_approved` in the ticket file → **stop** and send the
    developer to `/android-plan`. Never improvise one: gate 1 exists to be passed, not assumed.

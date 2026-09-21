@@ -5,10 +5,12 @@ description: Produce the copy-pasteable Android test-distribution note for a bui
 
 # Distribution note — stage 10
 
-Read `../../shared/config.md` first, then `reference.md` in this folder.
+Read `shared/config.md` first, then `reference.md` in this folder.
 
-> Paths beginning `../../` are **inside this plugin**, relative to this file — not to the
-> repository you are working in. Resolve them from this skill's own directory.
+> **Finding these files:** they live in the **plugin root** — the nearest ancestor directory of
+> this skill file that contains `plugin.json`. Locate that directory first, then read
+> `<plugin-root>/shared/<file>.md`. They are not in the repository you are working in, and not
+> under `skills/`. If you cannot find them, say so and stop rather than continuing without them.
 
 1. Read `app_tag`, `release_notes.file` and `build.gradle_file` from
    `.ai/project/android-workflow.yml`. No config → stop and tell the user to run `/android-onboard`.
