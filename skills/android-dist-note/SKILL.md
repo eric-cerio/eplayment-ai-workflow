@@ -7,6 +7,9 @@ description: Produce the copy-pasteable Android test-distribution note for a bui
 
 Read `../../shared/config.md` first, then `reference.md` in this folder.
 
+> Paths beginning `../../` are **inside this plugin**, relative to this file — not to the
+> repository you are working in. Resolve them from this skill's own directory.
+
 1. Read `app_tag`, `release_notes.file` and `build.gradle_file` from
    `.ai/project/android-workflow.yml`. No config → stop and tell the user to run `/android-onboard`.
 2. Ask whether this is **PROD** or **QA** testing.

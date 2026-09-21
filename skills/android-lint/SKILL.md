@@ -7,6 +7,9 @@ description: Format and lint the Kotlin changes on this branch with ktlint, Andr
 
 Read `../../shared/config.md`, then `reference.md` in this folder.
 
+> Paths beginning `../../` are **inside this plugin**, relative to this file — not to the
+> repository you are working in. Resolve them from this skill's own directory.
+
 1. **Resolve the changed Kotlin files** with the command in `reference.md`. None → say so and stop.
 2. **ktlint**, according to `build.ktlint`.
 3. **Android lint**: `./gradlew <build.lint_task>` with the resolved JDK. Report failures as

@@ -8,6 +8,9 @@ description: Set up an Android repository for the Copilot Android workflow by de
 Read `../../shared/config.md` for the file you are writing, then `reference.md` here for how to
 detect each value.
 
+> Paths beginning `../../` are **inside this plugin**, relative to this file — not to the
+> repository you are working in. Resolve them from this skill's own directory.
+
 1. **Check this is an Android repository.** No Gradle file applying `com.android.application` →
    stop and say so. This workflow is for Android apps.
 2. **Check AICS.** No `.ai/` directory → tell the developer `epm aics install` must run first,

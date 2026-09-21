@@ -7,6 +7,9 @@ description: Update the Android release notes and versionName for the current ti
 
 Read `../../shared/config.md` and `../../shared/ticket-file.md`, then `reference.md` here.
 
+> Paths beginning `../../` are **inside this plugin**, relative to this file — not to the
+> repository you are working in. Resolve them from this skill's own directory.
+
 1. **Resolve the ticket key**: argument → branch name → ask.
 2. **Release notes**: apply `release_notes.mode` to `release_notes.file`, using
    `<jira_base><KEY>`.

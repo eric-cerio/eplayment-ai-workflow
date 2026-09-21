@@ -7,6 +7,9 @@ description: Run or write Android JVM unit tests for a feature, package, class, 
 
 Read `../../shared/config.md` and `../../shared/ticket-file.md`, then `reference.md` here.
 
+> Paths beginning `../../` are **inside this plugin**, relative to this file — not to the
+> repository you are working in. Resolve them from this skill's own directory.
+
 Usage: `/android-test [scope]`, where scope is a feature word, a package fragment, a class name, or
 `--all`.
 
