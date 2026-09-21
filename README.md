@@ -50,6 +50,17 @@ See [`docs/checks/2026-09-20-platform-checks.md`](docs/checks/2026-09-20-platfor
 | `/android-dist-note` | 10 | asks prod or QA |
 | `/android-onboard` | setup | asks about what it cannot detect |
 
+## Picking up where you left off
+
+Each run records what it learns — the ticket details, the approved plan, the branch, the security
+result — in `<git-common-dir>/android-workflow/<KEY>.md`. It lives inside `.git`, so it is never
+committed and never appears in a diff.
+
+That file is why `/ticket TA-1234` run tomorrow resumes at the first unfinished stage instead of
+asking for the ticket details again, and why `/android-commit-push` on its own knows whether the
+security gate has passed **for the changes you have now** — it compares a fingerprint of your diff,
+so a pass from before your last edit does not count. See [`shared/ticket-file.md`](shared/ticket-file.md).
+
 ## The rails
 
 A `preToolUse` hook denies these before they run, whatever the model decided:
@@ -66,11 +77,21 @@ interferes with unrelated projects.
 
 ```bash
 copilot --plugin-dir "$PWD"     # run the plugin without installing it
-./tests/lint-skills.sh          # frontmatter, references, no repo-specific strings
-./tests/run.sh                  # the hook, against sample tool calls
+./tests/lint-skills.sh          # frontmatter, references, no repo-specific strings, no ../ paths
+./tests/run.sh                  # 21 cases against both hooks, on scratch repositories
 ```
 
 Run both before tagging a release: everyone auto-updates to latest, so a broken rail reaches the
 whole team at their next `copilot plugin update`.
+
+Two things the tests exist to catch, because both have already happened here:
+
+- A hook that **fails open**. `guard-rails.sh` emits a deny before it sources anything, so a broken
+  install blocks git writes instead of silently allowing them.
+- A rail that is **present in the file and absent in reality**. The payload helpers once used
+  GNU-only `sed` syntax and parsed nothing on macOS, so every rail passed everything.
+
+Hooks live at `com.github.copilot/hooks/hooks.json` — a plugin declaring the Agent Plugins v1
+`$schema` is not read from anywhere else.
 
 The design and the task-by-task plan are in [`docs/superpowers/`](docs/superpowers/).
