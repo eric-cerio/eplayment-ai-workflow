@@ -36,8 +36,9 @@ root="$(repo_root "$cwd")" || allow
 has_workflow_config "$root" || allow
 cfg="$root/.ai/project/android-workflow.yml"
 
-protected="$(cfg_list "$cfg" protected_branches)"
-[ -n "$protected" ] || protected="$(printf 'develop\nmain\nmaster\n')"
+# The configured list is a superset request, never a way to unprotect the three base branches:
+# a config narrowed by hand (or by a mistaken onboarding) cannot open a hole here.
+protected="$(printf 'develop\nmain\nmaster\n%s\n' "$(cfg_list "$cfg" protected_branches)" | grep -v '^$' | sort -u)"
 branch="$(current_branch "$root")"
 is_protected() { printf '%s\n' "$protected" | grep -qx -- "$1"; }
 
