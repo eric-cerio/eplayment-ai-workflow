@@ -11,9 +11,13 @@ skills into the full run.
 ## Install
 
 ```bash
-copilot plugin install eplayment/ai-workflow
+copilot plugin install eric-cerio/eplayment-ai-workflow
 copilot plugin update --all        # later, to pick up changes
 ```
+
+Installing needs GitHub access to this repository. If `gh auth status` reports a working keyring
+login but installs still fail, check for an invalid `GITHUB_TOKEN` in your environment — it
+overrides the keyring, and it breaks `gh` and `npm` the same way.
 
 Then, once per repository:
 
@@ -27,10 +31,16 @@ It detects the repo's build, versioning, release-notes and distribution conventi
 
 ## Supported surfaces
 
-Verified in **Copilot CLI 1.0.85**. Android Studio (Copilot plugin 1.11.0) loads skills that live
-in the repository and responds to them when asked in plain words, but does not offer them as slash
-commands; whether an installed *plugin* reaches the IDE is unverified until this repo is published.
-See [`docs/checks/2026-09-20-platform-checks.md`](docs/checks/2026-09-20-platform-checks.md).
+**Copilot CLI 1.0.85** — verified: hooks fire and deny, skills invoke other skills, the three gates
+hold, and a run resumes from its ticket file.
+
+**Android Studio** (Copilot plugin 1.11.0) — partly verified. It loads skills that live in a
+repository and runs them when asked in plain words, but does not offer them as slash commands.
+Whether it picks up an *installed plugin* is still unproven: it could not be tested before this
+repo existed, because `copilot plugin install` rejects local `file://` sources. Install it and ask
+Copilot Chat, in Agent mode, to "run the android-dist-note skill" — that settles it.
+
+Details and evidence: [`docs/checks/2026-09-20-platform-checks.md`](docs/checks/2026-09-20-platform-checks.md).
 
 ## The skills
 

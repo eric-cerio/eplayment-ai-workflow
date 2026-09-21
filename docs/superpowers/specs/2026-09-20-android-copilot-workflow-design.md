@@ -461,8 +461,8 @@ No CI. Verification is:
 
 ## 12. Rollout
 
-1. **Publish.** Push this repository to a private `eplayment/ai-workflow`, tag `v0.1.0`. Developers
-   run `copilot plugin install eplayment/ai-workflow` once, then `copilot plugin update --all`.
+1. **Publish.** Push this repository to a private `eric-cerio/eplayment-ai-workflow`, tag `v0.1.0`. Developers
+   run `copilot plugin install eric-cerio/eplayment-ai-workflow` once, then `copilot plugin update --all`.
 2. **PIXEL.** Install, run `/android-onboard`, and open one PR that adds
    `.ai/project/android-workflow.yml`, tweaks `check-hardcoded-strings.sh`, and deletes
    `.github/prompts/ticket.prompt.md`, `.github/prompts/bugfix.prompt.md` and the dangling

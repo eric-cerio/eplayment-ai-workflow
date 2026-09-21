@@ -237,7 +237,7 @@ cat > plugin.json <<'JSON'
 JSON
 ```
 
-`README.md` covers: install (`copilot plugin install eplayment/ai-workflow`), update (`copilot plugin update --all`), the skill table (13 rows: name → what it does → gate, if any), the per-repo config pointer to `shared/config.md`, and running `./tests/run.sh` and `./tests/lint-skills.sh` before tagging. If Task 1 found Android Studio cannot see plugin skills, say so under a "Supported surfaces" heading.
+`README.md` covers: install (`copilot plugin install eric-cerio/eplayment-ai-workflow`), update (`copilot plugin update --all`), the skill table (13 rows: name → what it does → gate, if any), the per-repo config pointer to `shared/config.md`, and running `./tests/run.sh` and `./tests/lint-skills.sh` before tagging. If Task 1 found Android Studio cannot see plugin skills, say so under a "Supported surfaces" heading.
 
 - [ ] **Step 4: Write the stage 10 skill**
 
@@ -1366,7 +1366,7 @@ git commit -m "feat: ticket, bugfix and ship chains over the stage skills"
 
 **Interfaces:**
 - Consumes: everything above.
-- Produces: the tag `v0.1.0` on `eplayment/ai-workflow`, installable with `copilot plugin install eplayment/ai-workflow`.
+- Produces: the tag `v0.1.0` on `eric-cerio/eplayment-ai-workflow`, installable with `copilot plugin install eric-cerio/eplayment-ai-workflow`.
 
 - [ ] **Step 1: Build the sandbox**
 
@@ -1406,8 +1406,8 @@ Expected: `19 passed, 0 failed`, `skill lint: OK`, `no personal paths`.
 ```bash
 git add docs/checks/2026-09-20-acceptance.md README.md
 git commit -m "docs: acceptance run for v0.1.0"
-# create the private repo eplayment/ai-workflow, then:
-git remote add origin git@github.com:eplayment/ai-workflow.git
+# create the private repo eric-cerio/eplayment-ai-workflow, then:
+git remote add origin git@github.com:eric-cerio/eplayment-ai-workflow.git
 git push -u origin main
 git tag -a v0.1.0 -m "Android Copilot workflow v0.1.0"
 git push origin v0.1.0
@@ -1416,7 +1416,7 @@ git push origin v0.1.0
 - [ ] **Step 6: Verify a clean install**
 
 ```bash
-copilot plugin install eplayment/ai-workflow
+copilot plugin install eric-cerio/eplayment-ai-workflow
 copilot skill list | grep -E 'ticket|android-'
 ```
 Expected: all 13 skills listed, installed from the repo rather than `--plugin-dir`.
