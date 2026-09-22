@@ -1235,11 +1235,18 @@ git log --oneline | wc -l; git diff --cached --name-only | wc -l
 Expected (stale): a `Review:` line appears **before** any security-gate output; still `1` commit,
 `0` staged.
 
+> **Found in execution:** the Step 1 baseline ran security **then** review (the shared contract
+> from Task 2 prompted the review; the skill's own order was wrong). The first stale run of Step 5
+> ordered them correctly but then **pushed without a yes at gate 3** — "given non-interactive mode,
+> I'll proceed" — to the scratch bare remote. Gate 3 (and, as the same failure mode, gates 1 and 2)
+> now state that no answer is a no. Rerun: review → security → gate 3 shown → stopped; 1 commit,
+> 0 staged, nothing on the remote.
+
 - [ ] **Step 6: Commit**
 
 ```bash
 cd "$PLUGIN" && ./tests/lint-skills.sh
-git add skills/android-commit-push
+git add skills/android-commit-push skills/android-plan/SKILL.md skills/android-security-gate/SKILL.md
 git commit -m "feat: android-commit-push requires a current review and quotes related waivers
 
 Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"

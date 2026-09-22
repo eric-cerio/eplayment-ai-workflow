@@ -35,7 +35,8 @@ stop. Re-plan only if the developer asks, and then read Jira again.
    rewritten. Show the related-ticket table, every waiver verbatim, and the open findings of any
    ticket in a findings status.
 5. **Gate 1.** Ask for approval of the plan, and for a feature, of the pattern choice.
-   **Wait for an explicit go.** Record `plan_approved` **only after the go**.
+   **Wait for an explicit go.** Record `plan_approved` **only after the go**. No answer — nobody
+   there to ask, a non-interactive session — is not a go.
 6. **Say what comes next**: `/android-branch`, or `/ticket <KEY>` to run the rest of the workflow.
 
 Write no code here, not even a stub. That is `/android-develop`, and only after approval.
