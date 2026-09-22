@@ -277,6 +277,10 @@ Gates stop and wait for an explicit reply. Stages without a gate do not pause.
 
 ### 8.1 `android-plan <KEY> [feature|fix]` — stages 01+02, gate 1
 
+> **Amended 2026-09-22:** intake now reads Jira and stops on related `[BE]`/`[UI]` tickets that have
+> not passed development, and a review stage (07b) runs before the security gate. See
+> `2026-09-22-related-tickets-and-code-review-design.md`, which also amends 8.8 and 8.11.
+
 Intake, prompting one field at a time for anything missing: **name**, **key** (validated against
 `<LETTERS>-<DIGITS>`), and **acceptance criteria** for a feature or **observed vs expected** for a
 fix. A **UI reference or repro steps** is optional, asked once; "skip" is accepted and it never
