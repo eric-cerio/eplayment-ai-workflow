@@ -59,7 +59,7 @@ Details and evidence: [`docs/checks/2026-09-20-platform-checks.md`](docs/checks/
 | `/ticket <KEY>` | chain: plan → branch → develop → ship | at each gate below |
 | `/bugfix <KEY>` | the same, in fix mode | at each gate below |
 | `/android-ship` | chain: stages 05→10 | at gates 2 and 3 |
-| `/android-plan <KEY> [feature\|fix]` | 01+02 | **gate 1** — the plan |
+| `/android-plan <KEY> [feature\|fix]` | 01+02 | **gate 1** — the plan; stops first if a `[BE]` or `[UI]` ticket has not passed development |
 | `/android-branch` | 03 | — |
 | `/android-develop` | 04 | — |
 | `/android-lint` | 05 | — |
