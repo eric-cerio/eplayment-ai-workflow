@@ -30,6 +30,12 @@ for skill in "$root"/skills/*/SKILL.md; do
   # Relative escapes proved ambiguous in practice: the model miscounts the levels.
   grep -q '\.\./' "$skill" && note "$rel: uses a ../ path; name the plugin root instead"
 
+  # A skill named in backticks must exist, so a chain cannot call a stage that is not there.
+  while read -r ref; do
+    [ -n "$ref" ] || continue
+    [ -d "$root/skills/${ref#/}" ] || note "$rel: names skill ${ref#/}, which does not exist"
+  done < <(grep -oE '`/?android-[a-z-]+`' "$skill" | tr -d '`' | sort -u)
+
   # Repo-specific strings are configuration, not skill content.
   if grep -qE '/Users/|eplayment-pixel-android|eplayment-android|keri-android|mannypay-android' "$skill"; then
     note "$rel: contains a repo-specific path or repo name"

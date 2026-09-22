@@ -65,6 +65,7 @@ Details and evidence: [`docs/checks/2026-09-20-platform-checks.md`](docs/checks/
 | `/android-lint` | 05 | — |
 | `/android-release-notes` | 06 | — |
 | `/android-test [scope]` | 07 | — |
+| `/android-review` | 07b | **hard block** — must-fix findings stop the push until the code changes |
 | `/android-security-gate` | 08 | **gate 2** — high severity blocks the push |
 | `/android-commit-push` | 09 | **gate 3** — message, files and target, then your yes |
 | `/android-dist-note` | 10 | asks prod or QA |
@@ -97,7 +98,7 @@ interferes with unrelated projects.
 
 ```bash
 copilot --plugin-dir "$PWD"     # run the plugin without installing it
-./tests/lint-skills.sh          # frontmatter, references, no repo-specific strings, no ../ paths
+./tests/lint-skills.sh          # frontmatter, references, skill names, mcp.json, no repo-specific strings, no ../ paths
 ./tests/run.sh                  # 21 hook cases plus the diff-fingerprint check, on scratch repositories
 ```
 

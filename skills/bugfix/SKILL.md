@@ -1,6 +1,6 @@
 ---
 name: bugfix
-description: Run the full Android bugfix workflow for a defect - intake and diagnosis, branch, optional implementation of the fix, then lint, version, tests, security gate, commit and push, and the distribution note. Use when the user reports a bug to fix, gives a Jira key for a defect, or types /bugfix.
+description: Run the full Android bugfix workflow for a defect - intake and diagnosis, branch, optional implementation of the fix, then lint, version, tests, code review, security gate, commit and push, and the distribution note. Use when the user reports a bug to fix, gives a Jira key for a defect, or types /bugfix.
 ---
 
 # /bugfix — the bugfix workflow
@@ -22,7 +22,8 @@ unfinished stage and say where you resumed from. An approved plan from yesterday
    - **N** → stop here and print: *"Write the code, then run `/android-ship`."*
      N is a legitimate answer. Do not argue with it, do not ask twice, and do not start writing
      anyway. Every stage after this one behaves identically either way.
-4. **`android-ship`** — stages 05 to 10, with gates 2 and 3 inside it.
+4. **`android-ship`** — stages 05 to 10 with the 07b code review, and gates 2 and 3
+   inside it.
 
 Never inline stages 05–10 here; `android-ship` owns them. Never skip a gate to save a round trip.
 

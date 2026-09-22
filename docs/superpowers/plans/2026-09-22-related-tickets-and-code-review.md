@@ -1103,6 +1103,13 @@ call is also correct; `Review: blocked — <n> must-fix` with n ≥ 3;
 `review:` with `result: fail` and a fingerprint; the ViewModel still untracked and unchanged (with
 no one to answer the Y/N, nothing is fixed).
 
+> **Found in execution:** the first Step 7 run found the right three must-fix findings, then fixed
+> them without a yes (it could not ask, and took that as permission) and recorded `pass` although
+> Gradle never ran. `SKILL.md` step 6 and "The fix loop" now say that no answer is a no, and that a
+> fix counts only when lint and tests actually ran. A must-fix labelled with its check's name
+> rather than its source also led to the "label is always the source" rule. The rerun: 4 must-fix
+> (the three planted plus the unmet error-state criterion), `result: fail`, nothing edited.
+
 - [ ] **Step 8: Verify it clears the clean fixture**
 
 ```bash
