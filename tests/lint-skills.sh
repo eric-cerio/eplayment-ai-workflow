@@ -36,5 +36,15 @@ for skill in "$root"/skills/*/SKILL.md; do
   fi
 done
 
+# Plugin MCP servers (check 7): a v1-schema plugin reads only mcp.json at its root, and the
+# declaration carries a URL, never a credential — each developer signs in.
+[ -e "$root/mcp.json" ] || note "mcp.json: missing; android-plan needs the Atlassian server declared"
+[ -e "$root/.mcp.json" ] && note ".mcp.json: ignored by v1-schema plugins; the file must be mcp.json"
+if [ -e "$root/mcp.json" ]; then
+  grep -q '"mcpServers"' "$root/mcp.json" || note "mcp.json: no mcpServers object"
+  grep -qiE '"(headers|env|authorization|token|apikey|api_key|password|secret)"' "$root/mcp.json" \
+    && note "mcp.json: declares headers or credentials; each developer signs in instead"
+fi
+
 [ $fail -eq 0 ] && echo "skill lint: OK"
 exit $fail

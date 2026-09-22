@@ -24,7 +24,7 @@
 - **Review:** stage number `07b` (do not renumber other stages). A must-fix finding needs `file:line` plus a concrete failure scenario; without one it is a suggestion. **No override**: no waiver, no dismissal.
 - **Fingerprint:** exactly the command in `shared/ticket-file.md` → "The diff fingerprint". `review.diff` and `security.diff` use the same one.
 - **Commits in this repo:** conventional (`feat:`, `test:`, `docs:`, `fix:`), ending with `Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>`. Work on the branch `feat/related-tickets-and-review`. **Never push, merge to `main`, or tag without the user's explicit go**: everyone auto-updates from `main`, and rollout waits on the R&D/DPO answers to spec §10.
-- **Local runs:** `copilot --plugin-dir "$PLUGIN" --allow-all-tools --no-ask-user -p "<prompt>"`. The installed `android-workflow` 0.1.0 is disabled for the whole plan (Task 1, Step 1) so it cannot shadow the working copy. Each run costs AI credits; do not loop them.
+- **Local runs:** `copilot --plugin-dir "$PLUGIN" --allow-all-tools --no-ask-user -p "<prompt>"`. `--plugin-dir` **replaces** the installed `android-workflow` 0.1.0 of the same name (verified in Task 1: `copilot --plugin-dir "$PLUGIN" skill list --json` gives one `android-plan`, at the working copy's path), so the installed copy needs no disabling — and cannot be disabled anyway, being a direct install. Each run costs AI credits; do not loop them.
 
 ## File Structure
 
@@ -58,12 +58,14 @@
 **Interfaces:**
 - Produces: a server named `atlassian` in every session where the plugin is loaded; lint rules that keep `mcp.json` credential-free.
 
-- [ ] **Step 1: Disable the installed 0.1.0 so it cannot shadow the working copy**
+- [x] **Step 1: Confirm the working copy is what `--plugin-dir` loads**
+
+`copilot plugin disable` refuses a direct install, so check instead that `--plugin-dir` wins:
 
 ```bash
-copilot plugin disable android-workflow && copilot plugin list | grep android-workflow
+copilot --plugin-dir "$PLUGIN" skill list --json | grep -o '"path": *"[^"]*android-plan"'
 ```
-Expected: `android-workflow` shown as disabled. (Task 7 re-enables it.)
+Expected: one path, inside `$PLUGIN`. (Without `--plugin-dir` it is the installed copy's path.)
 
 - [ ] **Step 2: Add the lint rules**
 
@@ -1292,12 +1294,11 @@ grep -rn "/Users/" skills/ shared/ mcp.json || echo "no personal paths"
 ```
 Expected: `21 passed, 0 failed`, `skill lint: OK`, `no personal paths`.
 
-- [ ] **Step 4: Bump, re-enable the installed copy, commit**
+- [ ] **Step 4: Bump and commit**
 
 Set `"version": "0.2.0"` in `plugin.json`.
 
 ```bash
-copilot plugin enable android-workflow
 git add plugin.json docs/checks/2026-09-22-acceptance-0.2.0.md
 git commit -m "docs: acceptance run for 0.2.0
 

@@ -29,6 +29,16 @@ It detects the repo's build, versioning, release-notes and distribution conventi
 `.ai/project/android-workflow.yml`. Everything repo-specific lives in that file — see
 [`shared/config.md`](shared/config.md).
 
+### Jira
+
+`/android-plan` reads the ticket, and its related `[BE]` and `[UI]` tickets, from Jira through the
+Atlassian MCP server this plugin declares in `mcp.json`. Sign in once with your own Atlassian
+account when Copilot asks; `/mcp` shows whether it is connected. The plugin carries no token and
+never writes to Jira.
+
+The server is declared in every Copilot session once the plugin is installed, not only in Android
+repositories. Signed out, it costs nothing but an unconnected line in `/mcp`.
+
 ## Supported surfaces
 
 **Copilot CLI 1.0.85** — verified: hooks fire and deny, skills invoke other skills, the three gates
