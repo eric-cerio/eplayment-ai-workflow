@@ -38,6 +38,16 @@ versionName "3.4.27"   →   versionName "3.4.28"
 Nothing else about the string changes. If it already carries a suffix, that is a different
 convention in the same repo — stop and ask rather than guessing.
 
+**Once per branch.** Compare with the base before bumping:
+
+```bash
+git show "$(git merge-base HEAD <base_branch>):<build.gradle_file>" | grep -m1 versionName
+```
+
+The working tree's `versionName` already differs from the base's → this branch has been bumped;
+say "already bumped on this branch (3.4.27 → 3.4.28)" and change nothing. A chain that stops and
+is run again must not bump twice.
+
 ### `rule: branch-suffix`
 
 Append the branch topic to the base version, once:

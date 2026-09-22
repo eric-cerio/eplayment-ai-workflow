@@ -277,6 +277,7 @@ the finding stands or falls on its failure scenario.
 | `android-commit-push` | Pre-flight, in order: protected branch → a `review` pass matching the fingerprint, else run `android-review` → a `security` pass matching it, else run the gate → nothing staged. Gate 3 also quotes the related-ticket waivers |
 | `ticket`, `bugfix` | Descriptions list the review stage. Chain logic unchanged |
 | `android-onboard` | Documents the optional `jira:` block, and reports whether the Atlassian and R&D Handbook servers are connected, without blocking |
+| `android-release-notes` | `patch-bump` bumps once per branch, compared with the merge base, so rerunning `/android-ship` after a review stop does not bump twice |
 
 `shared/config.md` gains the `jira:` block and its defaults; `shared/ticket-file.md` gains
 section 7. **The diff fingerprint now hashes each untracked file's contents**, not only its name:
