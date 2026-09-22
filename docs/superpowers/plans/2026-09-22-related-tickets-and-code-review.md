@@ -301,10 +301,19 @@ In `skills/android-onboard/SKILL.md` step 9, change "as three short lists:" to "
      `reference.md`.
 ```
 
+- [x] **Step 5b: The fingerprint hashes untracked contents (added during execution, user-approved)**
+
+Found while editing the contract: `git ls-files --others | sort` hashes untracked file **names**,
+so editing a new file after a pass left the fingerprint — and the pass — unchanged. A regression
+check in `tests/run.sh` takes the command from `shared/ticket-file.md` and requires the
+fingerprint to change when an untracked file's contents do (it failed first: `21 passed,
+1 failed`). The contract now pipes each untracked path through `git hash-object`. From here on
+`tests/run.sh` reports `22 passed`.
+
 - [ ] **Step 6: Verify**
 
 ```bash
-cd "$PLUGIN" && ./tests/lint-skills.sh
+cd "$PLUGIN" && ./tests/lint-skills.sh && ./tests/run.sh | tail -1
 grep -c 'QA TESTING' shared/config.md
 grep -nE '^\| `android-(plan|review)` \|' shared/ticket-file.md
 grep -n 'four short lists' skills/android-onboard/SKILL.md
@@ -359,7 +368,7 @@ fi
 and change the case arm `on-feature|with-post-edit-check|narrowed-config)` to `on-feature|with-post-edit-check|narrowed-config|full-config)`.
 
 Run: `"$PLUGIN/tests/run.sh" | tail -1`
-Expected: `21 passed, 0 failed`.
+Expected: `22 passed, 0 failed`.
 
 - [ ] **Step 2: Capture the "before" behaviour**
 
@@ -760,6 +769,10 @@ Expected: `skills/android-ship/SKILL.md: names skill android-review, which does 
 #   passed:  also record review and security passes for the current changes.
 set -eu
 shape="${1:?defects or clean}"; passed="${2:-}"
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+# The fingerprint command, taken from its contract so the fixture can never drift from it.
+fp_cmd="$(awk '/^## The diff fingerprint/{s=1} s&&/^```bash/{c=1;next} c&&/^```/{exit} c' \
+  "$root/shared/ticket-file.md" | sed 's/<base_branch>/develop/g')"
 dir="$(mktemp -d)"; cd "$dir"
 git init -q -b develop .
 git config user.email t@example.com; git config user.name Test
@@ -891,8 +904,7 @@ object AppModule {
 KT
 fi
 
-fp="$({ git diff "$(git merge-base HEAD develop)"; git diff --cached; \
-        git ls-files --others --exclude-standard | sort; } | git hash-object --stdin | cut -c1-7)"
+fp="$(bash -c "$fp_cmd")"
 tdir="$(git rev-parse --git-common-dir)/android-workflow"; mkdir -p "$tdir"
 {
   printf -- '---\nkey: TA-1234\nname: Cancel reason\ntype: feature\nbranch: feature/TA-1234\n'
@@ -1096,8 +1108,8 @@ no one to answer the Y/N, nothing is fixed).
 ```bash
 R="$("$PLUGIN/tests/fixtures/review-repo.sh" clean)" && cd "$R"
 copilot --plugin-dir "$PLUGIN" --allow-all-tools --no-ask-user -p "/android-review TA-1234" | tail -8
-fp="$({ git diff "$(git merge-base HEAD develop)"; git diff --cached; \
-        git ls-files --others --exclude-standard | sort; } | git hash-object --stdin | cut -c1-7)"
+fp="$(bash -c "$(awk '/^## The diff fingerprint/{s=1} s&&/^```bash/{c=1;next} c&&/^```/{exit} c' \
+  "$PLUGIN/shared/ticket-file.md" | sed 's/<base_branch>/develop/g')")"
 grep -A2 '^review:' "$(git rev-parse --git-common-dir)/android-workflow/TA-1234.md"; echo "expected diff: $fp"
 ```
 Expected: no MUST-FIX (suggestions allowed), `Review: clear for the security gate`,
@@ -1127,7 +1139,7 @@ git commit -m "feat: android-review skill (stage 07b), a hard block on must-fix 
 
 Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 ```
-Expected before the commit: `skill lint: OK`, `21 passed, 0 failed`.
+Expected before the commit: `skill lint: OK`, `22 passed, 0 failed`.
 
 ---
 
@@ -1292,7 +1304,7 @@ record each outcome in the acceptance doc:
 cd "$PLUGIN" && ./tests/run.sh | tail -1 && ./tests/lint-skills.sh
 grep -rn "/Users/" skills/ shared/ mcp.json || echo "no personal paths"
 ```
-Expected: `21 passed, 0 failed`, `skill lint: OK`, `no personal paths`.
+Expected: `22 passed, 0 failed`, `skill lint: OK`, `no personal paths`.
 
 - [ ] **Step 4: Bump and commit**
 

@@ -98,7 +98,7 @@ interferes with unrelated projects.
 ```bash
 copilot --plugin-dir "$PWD"     # run the plugin without installing it
 ./tests/lint-skills.sh          # frontmatter, references, no repo-specific strings, no ../ paths
-./tests/run.sh                  # 21 cases against both hooks, on scratch repositories
+./tests/run.sh                  # 21 hook cases plus the diff-fingerprint check, on scratch repositories
 ```
 
 Run both before tagging a release: everyone auto-updates to latest, so a broken rail reaches the

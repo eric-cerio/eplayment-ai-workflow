@@ -279,7 +279,10 @@ the finding stands or falls on its failure scenario.
 | `android-onboard` | Documents the optional `jira:` block, and reports whether the Atlassian and R&D Handbook servers are connected, without blocking |
 
 `shared/config.md` gains the `jira:` block and its defaults; `shared/ticket-file.md` gains
-section 7. `plugin.json` moves to `0.2.0`. The README gains the one-time Atlassian sign-in, and the
+section 7. **The diff fingerprint now hashes each untracked file's contents**, not only its name:
+found while building this, the old command let a pass survive edits to a new file, which would
+have undermined the review's hard block as much as it already did the security gate. `tests/run.sh`
+checks the command from its contract. `plugin.json` moves to `0.2.0`. The README gains the one-time Atlassian sign-in, and the
 skills table gains `/android-review`.
 
 The review is not a fourth human gate: it asks no approval, it stops the way a failing test does.

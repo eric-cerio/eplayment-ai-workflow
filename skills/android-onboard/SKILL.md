@@ -28,10 +28,12 @@ detect each value.
    its comments, and set `workflow_version` from this plugin's `plugin.json`.
 8. **Show** the result: the file, then `git status --short`. **Do not commit.** The config belongs
    in a normal PR with a human reviewer.
-9. **Report**, as three short lists:
+9. **Report**, as four short lists:
    - what you **detected**, one line each with the evidence;
    - what you **guessed**, which the developer should check;
    - **legacy files** that can now be deleted, and **secrets already tracked in git**, which need
-     rotating by whoever owns the repository.
+     rotating by whoever owns the repository;
+   - **connections**: whether the Atlassian and R&D Handbook servers are connected, per
+     `reference.md`.
 
 Detect, then ask. Never write a value you did not detect and did not confirm.

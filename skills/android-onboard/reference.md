@@ -88,6 +88,18 @@ confirmation rather than inventing a long one.
 | `protected_branches` | always `[develop, main, master]` plus `base_branch`. **Do not filter to branches that exist today** — one created later would otherwise be unprotected. The hook also unions this list with those three, so narrowing it cannot unprotect them |
 | `bugfix_branch_rule` | `ask`, unless the repo's `bugfix/*` branches are clearly all one shape |
 | `workflow_version` | the `version` field of the plugin's own `plugin.json` |
+| `jira` | **Leave it out.** The defaults are the Eplayment Jira workflow. Write the block only when the developer says this repository's Jira project uses other statuses or prefixes |
+
+## Connections to report
+
+Check, and never block on either:
+
+- **Atlassian** — a connected MCP server that offers the Jira tools and can see the site in
+  `jira_base`. `android-plan` needs it.
+- **R&D Handbook** — a connected server offering `lookup_person` and `get_page`.
+  `android-review` uses it for the Android squad standards.
+
+Report each as connected or not, with the fix: "run `/mcp` and sign in".
 
 ## Drafting the architecture docs
 
