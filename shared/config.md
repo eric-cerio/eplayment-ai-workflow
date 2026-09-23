@@ -16,7 +16,7 @@ keys.
 ## The file
 
 ```yaml
-workflow_version: 0.1.0                 # plugin version this config was written for
+workflow_version: 0.2.0                 # plugin version this config was written for
 app_tag: PIXEL                          # stage 10 header: [...][PIXEL]
 jira_base: https://eplayment.atlassian.net/browse/
 base_branch: develop
