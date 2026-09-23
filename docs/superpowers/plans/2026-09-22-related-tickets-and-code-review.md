@@ -1346,3 +1346,78 @@ unverified for plugin MCP servers (check 7).
 - **Accepted risk:** the Atlassian server is declared in every Copilot session, not only in Android repositories (spec §10).
 - **For R&D, not decided here:** the Agent-tier question, customer personal data in bug tickets, and the hard block with no human override (spec §10).
 - **Out of scope:** writing to Jira; re-checking related tickets at push time; iOS or web tickets; shipping the R&D Handbook server in `mcp.json`; renumbering stages.
+
+---
+
+### Task 8: The policy answers (added 2026-09-23, after spec §10 was answered)
+
+Spec §10 was answered by the author, to be confirmed with R&D and the DPO. Two answers change the
+build; the tier answer (Workflow plus a registry entry) changes no code.
+
+**Files:**
+- Modify: `skills/android-plan/{SKILL,reference}.md` (a bugfix ticket is read for its links and
+  parent only), `skills/android-review/{SKILL,reference}.md` (advisory),
+  `skills/android-ship/SKILL.md`, `skills/android-commit-push/{SKILL,reference}.md`,
+  `shared/ticket-file.md` (the `review:` block), `README.md`,
+  `docs/superpowers/specs/2026-09-22-related-tickets-and-code-review-design.md` (§1, §3, §6, §8,
+  §9, §10)
+
+**Interfaces:**
+- Produces: `review.result` is now `pass | findings` with `review.must_fix`, a count.
+  `android-commit-push` reads them for gate 3 and never requires them.
+
+- [x] **Step 1: A bugfix ticket's description and comments are never read**
+
+`reference.md` §3 splits feature from bugfix: a bugfix fetches `summary`, `issuetype`, `status`,
+`parent` and `issuelinks` only. Observed vs expected comes from the developer through the manual
+intake, which is no longer "only after `jira-waived`". A summary carrying personal data is not used
+as `name`. The `[BE]` and `[UI]` tickets are still read in full for both types.
+
+- [x] **Step 2: The review becomes advisory**
+
+"Hard block" is gone from every file (`grep -rn "hard block" skills/ shared/ README.md` finds
+nothing). Must-fix stays as the top severity and still needs `file:line` plus a failure scenario.
+The fix loop offers a fix, takes only an explicit yes, and carries on either way. The stage records
+`result: pass | findings` and `must_fix: <n>`.
+
+- [x] **Step 3: The push stage reads the verdict instead of requiring it**
+
+`android-commit-push` pre-flight is back to protected branch → security → nothing staged. Gate 3
+gains a `review:` line — clear, or `<n> must-fix findings, not fixed (advisory)`, plus
+"recorded against older code" when the fingerprint is not the current one, or "not run".
+
+- [x] **Step 4: Verify**
+
+```bash
+cd "$PLUGIN" && ./tests/lint-skills.sh && ./tests/run.sh | tail -1
+R="$("$PLUGIN/tests/fixtures/review-repo.sh" defects)" && cd "$R"
+copilot --plugin-dir "$PLUGIN" --allow-all-tools --no-ask-user -p "/android-review TA-1234"
+grep -A3 '^review:' "$R/.git/android-workflow/TA-1234.md"; git status --short
+```
+Expected: findings reported, `Review: <n> must-fix, <m> suggestions — not blocking`,
+`result: findings` with `must_fix`, and no file changed.
+
+```bash
+R="$("$PLUGIN/tests/fixtures/review-repo.sh" clean passed)" && cd "$R"
+git init -q --bare "$R.remote.git" && git remote add origin "$R.remote.git"
+printf '// touched after the review\n' >> app/src/main/java/com/example/cancel/CancelReasonViewModel.kt
+copilot --plugin-dir "$PLUGIN" --allow-all-tools --no-ask-user -p "/android-commit-push TA-1234"
+git log --oneline | wc -l; git --git-dir="$R.remote.git" branch | wc -l
+```
+Expected: the security gate reruns (the fingerprint moved), the review does **not**, gate 3 shows
+the review line marked "recorded against older code", and the run stops there — 1 commit, no
+remote branch.
+
+- [x] **Step 5: Commit**
+
+```bash
+git add skills shared README.md docs/superpowers
+git commit -m "feat: advisory review, and bug tickets read for links only"
+```
+
+> **Verified 2026-09-23.** Review on the defects fixture: 4 must-fix reported with source labels
+> (the `!!` one now `general practice, not a company standard`), `Review: 4 must-fix, 0
+> suggestions — not blocking`, `result: findings` / `must_fix: 4` / `diff: 31c368f`, no file
+> changed. `android-commit-push` with a stale review: it invoked only `android-security-gate`,
+> showed `review:   clear — recorded against older code` and the related waiver at gate 3, and
+> stopped — 1 commit, no remote branch.

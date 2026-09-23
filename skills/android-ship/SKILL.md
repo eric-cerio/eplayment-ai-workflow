@@ -19,14 +19,15 @@ Invoke these skills in order, each in full:
 | 05 | `android-lint` | — |
 | 06 | `android-release-notes` | — |
 | 07 | `android-test` | — |
-| 07b | `android-review` | **hard block** — must-fix findings stop the chain until the code changes |
+| 07b | `android-review` | — advisory: it reports findings and never stops the chain |
 | 08 | `android-security-gate` | **gate 2** — high severity blocks the push |
 | 09 | `android-commit-push` | **gate 3** — nothing staged before the yes |
 | 10 | `android-dist-note` | asks prod or QA |
 
-**Stop at the first stage that fails**, and say which one and why. A failing test, a must-fix
-review finding or a blocked security gate ends the chain; it does not get skipped so the push can
-proceed. Rerunning `/android-ship` after the fix is safe: stage 06 does not bump twice.
+**Stop at the first stage that fails**, and say which one and why. A failing test or a blocked
+security gate ends the chain; it does not get skipped so the push can proceed. The review is
+advisory and does not stop it — its findings are carried to gate 3. Rerunning `/android-ship`
+after a fix is safe: stage 06 does not bump twice.
 
 Never do a stage's work yourself: each skill owns its rules, its config keys and its reporting.
 Running them in order is this skill's only job.

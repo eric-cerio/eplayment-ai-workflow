@@ -65,7 +65,7 @@ Details and evidence: [`docs/checks/2026-09-20-platform-checks.md`](docs/checks/
 | `/android-lint` | 05 | — |
 | `/android-release-notes` | 06 | — |
 | `/android-test [scope]` | 07 | — |
-| `/android-review` | 07b | **hard block** — must-fix findings stop the push until the code changes |
+| `/android-review` | 07b | — advisory: findings are reported and repeated at gate 3 |
 | `/android-security-gate` | 08 | **gate 2** — high severity blocks the push |
 | `/android-commit-push` | 09 | **gate 3** — message, files and target, then your yes |
 | `/android-dist-note` | 10 | asks prod or QA |

@@ -51,7 +51,8 @@ related:
   waivers:
     - {ticket: TA-2002, reason: "Design signed off in the review call; ticket not moved yet"}
 review:
-  result: pass                # pass | fail
+  result: findings            # pass | findings — advisory, it never blocks a push
+  must_fix: 2                 # how many must-fix findings were left unfixed
   diff: 3f2a91c               # the same fingerprint as security.diff
 security:
   result: pass                # pass | fail | waived
@@ -128,9 +129,9 @@ value, **the security pass and every waiver in it have expired** — run the gat
 the fingerprint to make a pass fit; that is the one thing in this file a developer should not hand-
 edit either.
 
-`review.diff` records the same fingerprint for the code review. `android-commit-push` checks the
-review first, then security: a change after either expires it, and a review fix always expires the
-security pass.
+`review.diff` records the same fingerprint for the code review, which is **advisory**: it never
+blocks a push. `android-commit-push` repeats the review summary at gate 3 and says when it was
+recorded against older code, so an unfixed finding still reaches the pull request's reviewer.
 
 ## When the file and the repository disagree
 

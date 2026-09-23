@@ -1,7 +1,9 @@
 # Code review — rules
 
-Stage 07b. It runs after the tests (07), so the tests written there are reviewed too, and before
-the security gate (08), so a fix made here is inside the security pass.
+Stage 07b, **advisory**: it reports, and the developer decides. It runs after the tests (07), so
+the tests written there are reviewed too, and before the security gate (08), so a fix made here is
+inside the security pass. Nothing here stops a push — the security gate (gate 2) and the push
+confirmation (gate 3) are still the stops.
 
 ## The change set
 
@@ -45,12 +47,14 @@ A standard or a practice never makes something must-fix on its own; a failure sc
 
 The label is always the **source** from this table, never the name of a check below. A must-fix
 from the table below that no repository file or ticket states — `!!` on outside data, say — is
-labelled `general practice, not a company standard`, and blocks because of its scenario.
+labelled `general practice, not a company standard`, and is must-fix because of its scenario.
 
 ## Must-fix
 
-Each carries `file:line` and a **failure scenario**: the input or state, and what goes wrong. No
-scenario → it is a suggestion, whatever its topic.
+"Must-fix" is the top severity, not a block: it marks a finding a reviewer would send back. Each
+carries `file:line` and a **failure scenario**: the input or state, and what goes wrong. No
+scenario → it is a suggestion, whatever its topic. The bar stays high precisely because nothing
+enforces it: a list padded with opinion is a list nobody reads.
 
 | Check | A must-fix looks like |
 |---|---|
@@ -93,25 +97,25 @@ SUGGESTION  app/src/main/java/.../CancelReasonViewModel.kt:9   [general practice
 
 ## The fix loop
 
-- **No override exists** — not a waiver, not a dismissal, not "fix it after the push".
-- Ask once: `Fix the must-fix findings now? (Y/N)`. Y → change exactly those. N → stop with
-  `review.result: fail` and the line "Fix them, then rerun `/android-ship`".
+- Ask once: `Fix the must-fix findings now? (Y/N)`. Y → change exactly those. N → record
+  `result: findings` and carry on; the chain continues to the security gate.
 - **Only an explicit yes allows an edit.** No answer is a no: a run that cannot ask — nobody
-  present, a non-interactive session — reports the findings, records `fail`, and changes no file.
+  present, a non-interactive session — reports the findings, records them, and changes no file.
   The developer may have written this code by hand; it is not the review's to rewrite unasked.
 - After a fix: the `android-lint` skill, then the `android-test` skill with no argument (the tests
-  related to the changes). A failure stops the chain as anywhere else.
+  related to the changes). A failure there stops the chain, as it does anywhere else.
 - **A fix is verified only by lint and tests that ran.** Gradle could not run for either — no
-  wrapper, no JDK, a broken build → record `fail`, say the fix is unverified, and stop. Never
-  record `pass` on top of a check that did not run. No tests cover the touched classes → say so;
-  that alone does not fail the review.
-- Review the files the fix touched again, not the whole change set; a new must-fix there loops.
+  wrapper, no JDK, a broken build → say the fix is unverified and leave the finding standing
+  rather than recording `pass` on top of a check that did not run. No tests cover the touched
+  classes → say so; that alone changes no verdict.
+- Review the files the fix touched again, not the whole change set.
 - A developer who thinks a finding is wrong reruns the review with the context that shows it. The
   finding stands or falls on its scenario: context showing the scenario cannot happen (the BE
   contract guarantees the field, say) makes it not must-fix.
 
 ## Recording
 
-Write `review.result` — `pass` only with zero must-fix — and `review.diff`, the fingerprint from
-`shared/ticket-file.md`, after the last change. Record `fail` with its fingerprint too, so
-`android-commit-push` knows the review ran and did not clear.
+Write `review.result` — `pass` with zero must-fix left, else `findings` — `review.must_fix`, the
+count, and `review.diff`, the fingerprint from `shared/ticket-file.md`, after the last change.
+`android-commit-push` repeats that summary at gate 3, which is how an unfixed finding reaches the
+person reviewing the pull request.

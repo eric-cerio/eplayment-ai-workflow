@@ -17,9 +17,12 @@ Usage: `/android-plan <KEY> [feature|fix]`. No type given → ask which it is.
 **Already approved?** `plan_approved` set in the ticket file → say so, name the next step, and
 stop. Re-plan only if the developer asks, and then read Jira again.
 
-1. **Jira intake**, as `reference.md` describes: resolve the key, reach Jira, read the ticket and
-   its comments, find the related `[BE]` and `[UI]` tickets, and gate on their status.
+1. **Jira intake**, as `reference.md` describes: resolve the key, reach Jira, read the ticket, find
+   the related `[BE]` and `[UI]` tickets, and gate on their status.
    **Jira is read-only: never change anything in it.**
+   - A **feature** ticket is read in full, comments included. A **bugfix** ticket is read for its
+     links and parent only — never its description or comments, which is where customer data
+     lives; you ask the developer for observed vs expected instead.
    - A related ticket not passed, or dead → **stop**, unless the developer gives a reason in words
      for every such ticket.
    - Jira unreadable → **stop**, unless the developer gives a reason in words; then run the manual

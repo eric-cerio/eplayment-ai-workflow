@@ -15,8 +15,8 @@ Two changes to the Android workflow plugin:
    nothing looks at the tickets the Android work depends on.
 2. **A code-review stage, `android-review` (stage 07b).** It reviews the edited files for
    correctness, the repository's architecture and conventions, the Android squad standards and
-   general practice, and **hard-blocks the push** on real defects. Today stage 05 checks format,
-   lint and debris only; nothing checks quality before the push.
+   general practice, and **reports** what a reviewer would send back, before the push. Today stage
+   05 checks format, lint and debris only; nothing checks quality before the push.
 
 ## 2. Why
 
@@ -41,7 +41,8 @@ Two changes to the Android workflow plugin:
 | Parent is an Epic | Show what was found and how; the developer drops unrelated keys in one answer |
 | Applies to | `/ticket` and `/bugfix` alike |
 | Code review | New skill `android-review`, stage 07b: after tests, before the security gate |
-| Review blocking | Hard block with no override: must-fix findings stop the chain until the code changes |
+| Review blocking | **Advisory** (revised 2026-09-23, §10): it reports; findings never stop a push, and are repeated at gate 3 |
+| Bug tickets | A bugfix ticket is read for its links and parent only — never its description or comments (revised 2026-09-23, §10) |
 
 ## 4. Platform facts this design depends on
 
@@ -123,13 +124,15 @@ Replaces step 1. The probes, gate 1, and recording `plan_approved` only after th
 
 1. **Resolve the key**: argument → branch name → ask. Validate `<LETTERS>-<DIGITS>`.
 2. **Check Jira access** (section 5).
-3. **Read the Android ticket**: summary, issue type, status, description, parent, issue links, and
-   all comments.
+3. **Read the Android ticket.** A **feature**: summary, issue type, status, description, parent,
+   issue links and all comments. A **bugfix**: summary, issue type, status, parent and issue links
+   **only** — never its description or comments, where customer data collects (§10).
    - `name` — the summary without a leading bracketed tag (`[Android] Cancel reason` →
-     `Cancel reason`).
-   - Feature: **acceptance criteria**. Bugfix: **observed vs expected**. Both come from the
-     description and the comments. Where a comment changes what the description says, the latest
-     comment wins, and the plan says which comment changed what.
+     `Cancel reason`). A summary carrying personal data is not used: ask for a title instead.
+   - Feature: **acceptance criteria**, from the description then the comments. Where a comment
+     changes what the description says, the latest wins, and the plan says which comment changed
+     what.
+   - Bugfix: **observed vs expected**, from the developer, always.
    - A field Jira does not supply → ask for that field only, one at a time, as before. Still
      missing → stop.
 4. **Find the related tickets.**
@@ -197,7 +200,7 @@ Two new body sections, after `## Acceptance criteria`: `## From BE tickets` and
 
 Writers: `android-plan` writes `related` and the two sections; `android-review` writes `review`.
 
-## 8. `android-review` — stage 07b
+## 8. `android-review` — stage 07b (advisory)
 
 ### Where it runs
 
@@ -234,7 +237,8 @@ Every finding is labelled with its source.
 
 ### Must-fix and suggestions
 
-A **must-fix** finding blocks the push. Each one carries `file:line` and a **concrete failure
+A **must-fix** finding is the top severity — what a reviewer would send back. It does not block:
+the stage is advisory (§10). Each one carries `file:line` and a **concrete failure
 scenario** — the input or state, and what goes wrong. A finding without a scenario is a
 suggestion, whatever its topic. Must-fix covers:
 
@@ -254,19 +258,21 @@ issues belong to stage 08: mention one if seen, and leave the verdict to the gat
 
 ### The fix loop
 
-There is **no override** for a must-fix finding: the code changes, or the push does not happen.
-Neither waiver nor dismissal exists at this stage.
+The review reports; the developer decides. Nothing here holds a push.
 
 1. Present all findings at once, must-fix first, grouped by file.
-2. Offer to fix the must-fix findings. On a yes, edit; otherwise the developer fixes by hand.
-3. Run `android-lint` on the changed files and `android-test` on the affected scope. A failure
-   stops the chain, as anywhere else.
-4. Review the files the fix touched again. Repeat until nothing is must-fix.
-5. Record `review.result: pass` and the diff fingerprint. Apply suggestions only when the developer
-   picks them, then run step 3 again.
+2. Offer to fix the must-fix findings. **Only an explicit yes allows an edit**; no answer — a
+   non-interactive run, nobody present — is a no, and the findings are recorded unfixed.
+3. After a fix, run `android-lint` and `android-test` (no argument) on the affected scope. A
+   failure stops the chain, as anywhere else. A fix counts only when both actually ran: Gradle
+   could not run → say the fix is unverified and leave the finding standing.
+4. Review the files the fix touched again.
+5. Record `review.result` (`pass` or `findings`), `review.must_fix` and the diff fingerprint.
+   `android-commit-push` repeats that summary at gate 3, so an unfixed finding reaches the pull
+   request's reviewer.
 
-A developer who believes a finding is wrong reruns the review with the context that shows it —
-the finding stands or falls on its failure scenario.
+A developer who thinks a finding is wrong reruns the review with the context that shows it — the
+finding stands or falls on its failure scenario.
 
 ## 9. Changes to existing skills
 
@@ -274,7 +280,7 @@ the finding stands or falls on its failure scenario.
 |---|---|
 | `android-plan` | Step 1 becomes section 6. `reference.md` gains the intake rules and the extraction rules |
 | `android-ship` | The 07b row. A must-fix stop ends the chain like a failing test |
-| `android-commit-push` | Pre-flight, in order: protected branch → a `review` pass matching the fingerprint, else run `android-review` → a `security` pass matching it, else run the gate → nothing staged. Gate 3 also quotes the related-ticket waivers |
+| `android-commit-push` | Pre-flight, in order: protected branch → a `security` pass matching the fingerprint, else run the gate → nothing staged. Gate 3 quotes the related-ticket waivers and the review summary, marked stale when it was recorded against older code. It never runs or requires the review |
 | `ticket`, `bugfix` | Descriptions list the review stage. Chain logic unchanged |
 | `android-onboard` | Documents the optional `jira:` block, and reports whether the Atlassian and R&D Handbook servers are connected, without blocking |
 | `android-release-notes` | `patch-bump` bumps once per branch, compared with the merge base, so rerunning `/android-ship` after a review stop does not bump twice |
@@ -282,28 +288,34 @@ the finding stands or falls on its failure scenario.
 `shared/config.md` gains the `jira:` block and its defaults; `shared/ticket-file.md` gains
 section 7. **The diff fingerprint now hashes each untracked file's contents**, not only its name:
 found while building this, the old command let a pass survive edits to a new file, which would
-have undermined the review's hard block as much as it already did the security gate. `tests/run.sh`
+have undermined the review's verdict as much as it already did the security gate. `tests/run.sh`
 checks the command from its contract. `plugin.json` moves to `0.2.0`. The README gains the one-time Atlassian sign-in, and the
 skills table gains `/android-review`.
 
-The review is not a fourth human gate: it asks no approval, it stops the way a failing test does.
+The review is not a fourth gate: it asks no approval and stops nothing. Gate 2 (security) and
+gate 3 (the push) remain the only stops after the plan.
 
 ## 10. Policy and accepted risks
 
-These are for the author to take to R&D. This design does not settle them.
+Answered 2026-09-23 by the author, to be confirmed with R&D (`#ai-requests`) and, for the second,
+the DPO. The build follows these answers; a different answer from R&D changes the build again.
 
-- **Tier.** The workflow now calls tools that read a system of record with a person's credentials.
-  `.ai/company/ai-usage-policy.md` puts that close to the Agent tier ("where something could be two
-  tiers, the higher applies"), which carries hosting, credential and ownership requirements a
-  per-developer plugin does not meet. R&D holds Technical Approval; raise it together with the
-  registry entry already tracked as an accepted risk.
-- **Personal data in tickets.** Bug tickets and their comments can hold customer personal data.
-  Reading them sends that data to Copilot, which the "never enter into any AI tool" list forbids.
-  The skill copies none of it onward, but cannot avoid reading it. Needs an R&D and DPO answer
-  before rollout.
-- **An AI finding alone can stop a push.** The hard block has no human override, which sits
-  uneasily with "AI never owns a risk decision". The mitigation is the narrow must-fix definition:
-  no concrete failure scenario, no block.
+- **Tier — answered: Workflow, with a registry entry.** A person triggers the run, it only reads,
+  and it writes nothing to Jira. It is recorded in the AI and Agents Registry as a Workflow with a
+  named owner and a review date. R&D holds Technical Approval and may still call it an Agent, which
+  would require company-managed hosting and credentials that are not a person's own — the Jira read
+  would then move behind a company service or come out. No code follows from this answer.
+- **Personal data — answered: a bugfix ticket is read for its links and parent only.** Its
+  description and comments are never requested, because that is where a customer's account number,
+  phone number or screenshot collects, and the company list forbids such data reaching any AI tool.
+  Observed vs expected comes from the developer, as it does today. Feature tickets are read in
+  full; `[BE]` and `[UI]` tickets are read in full for both types, being technical. Nothing
+  personal is copied onward either way (§6.7). The DPO may still narrow this.
+- **The review — answered: advisory.** An AI finding never blocks a person: the stage reports, the
+  developer decides, and gate 3 repeats what was not fixed so it reaches the pull request's
+  reviewer. This keeps "AI never owns a risk decision" intact and costs the enforcement the hard
+  block would have given; the must-fix bar (a `file:line` and a concrete failure scenario) is what
+  keeps the report worth reading.
 - **The Atlassian server is declared for every session**, not only in Android repositories
   (section 4). Accepted: an unused, signed-out server costs nothing but a line in `/mcp`.
 

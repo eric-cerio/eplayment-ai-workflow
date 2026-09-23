@@ -38,13 +38,24 @@ stop. Never skip the check silently, and never invent the reason.
 
 ### 3. The Android ticket
 
-Fetch `summary`, `issuetype`, `status`, `description`, `parent`, `issuelinks` and `comment`. If the
-response says there are more comments than it returned, fetch the rest.
+**A feature** — fetch `summary`, `issuetype`, `status`, `description`, `parent`, `issuelinks` and
+`comment`. If the response says there are more comments than it returned, fetch the rest.
+
+**A bugfix** — fetch `summary`, `issuetype`, `status`, `parent` and `issuelinks` **only**. Never
+request or read a bug ticket's `description` or `comment`: that is where a customer's account
+number, phone number or screenshot ends up, and the company AI usage policy keeps such data out of
+any AI tool. The links and the parent are what this stage needs; **observed vs expected comes from
+the developer**, through the manual intake below. Say so in one line: "bug ticket read for its
+links only; tell me the observed and expected behaviour."
+
+A summary that itself carries personal data — a customer's name or account number — is not used as
+`name`: ask the developer for a short title instead, and say why.
 
 | Field | From |
 |---|---|
 | **name** | the summary without one leading bracketed tag: `[Android] Cancel reason` → `Cancel reason`. Reused verbatim in the commit message |
-| **acceptance criteria** (feature) / **observed vs expected** (fix) | the description, then the comments oldest to newest. Where a comment changes what the description says, the later one wins, and the plan names it: "comment, 2026-09-18: the reason is now optional" |
+| **acceptance criteria** (feature only) | the description, then the comments oldest to newest. Where a comment changes what the description says, the later one wins, and the plan names it: "comment, 2026-09-18: the reason is now optional" |
+| **observed vs expected** (bugfix) | the developer, always. Never a bug ticket's description or comments |
 
 A field Jira does not supply → ask for that field only, one question at a time. Still missing →
 **stop**. Half a ticket is not a plan, and the run that starts on one produces work nobody asked
@@ -126,13 +137,18 @@ the UI reference; do not ask for one.
 
 ### 7. Personal data stays in Jira
 
-Never copy into the ticket file or the plan: names, emails, phone numbers, account or card numbers,
-addresses, or any customer data from a description, a comment or an attachment name. Attribute by
+A bug ticket's own description and comments are never read at all (section 3). For everything that
+is read — a feature ticket, and the `[BE]` and `[UI]` tickets of either type — never copy into the
+ticket file or the plan: names, emails, phone numbers, account or card numbers, addresses, or any
+customer data from a description, a comment or an attachment name. Attribute by
 role and date — "BE comment, 2026-09-18" — never by author. Customer data seen in a ticket → say
 once "this ticket contains customer data; none of it was copied", and describe the behaviour, not
 the data.
 
-### Manual intake (only after `jira-waived`)
+### Manual intake
+
+Always for a bugfix's **observed vs expected** (section 3), and for every field after a
+`jira-waived` intake.
 
 Three required fields, asked one at a time, only for what the invocation did not already give:
 
