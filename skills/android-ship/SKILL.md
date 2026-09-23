@@ -1,6 +1,6 @@
 ---
 name: android-ship
-description: Run the finishing half of the Android workflow on the current branch - lint, release notes and version, tests, the security gate, commit and push, then the distribution note. Use when the user has written code by hand and wants it shipped, or as stages 05-10 of the Android workflow.
+description: Run the finishing half of the Android workflow on the current branch - lint, release notes and version, tests, a code review, the security gate, commit and push, then the distribution note. Use when the user has written code by hand and wants it shipped, or as stages 05-10 of the Android workflow.
 ---
 
 # Ship — stages 05→10
@@ -19,12 +19,15 @@ Invoke these skills in order, each in full:
 | 05 | `android-lint` | — |
 | 06 | `android-release-notes` | — |
 | 07 | `android-test` | — |
+| 07b | `android-review` | — advisory: it reports findings and never stops the chain |
 | 08 | `android-security-gate` | **gate 2** — high severity blocks the push |
 | 09 | `android-commit-push` | **gate 3** — nothing staged before the yes |
 | 10 | `android-dist-note` | asks prod or QA |
 
 **Stop at the first stage that fails**, and say which one and why. A failing test or a blocked
-security gate ends the chain; it does not get skipped so the push can proceed.
+security gate ends the chain; it does not get skipped so the push can proceed. The review is
+advisory and does not stop it — its findings are carried to gate 3. Rerunning `/android-ship`
+after a fix is safe: stage 06 does not bump twice.
 
 Never do a stage's work yourself: each skill owns its rules, its config keys and its reporting.
 Running them in order is this skill's only job.

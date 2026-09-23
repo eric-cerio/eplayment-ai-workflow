@@ -29,6 +29,16 @@ It detects the repo's build, versioning, release-notes and distribution conventi
 `.ai/project/android-workflow.yml`. Everything repo-specific lives in that file — see
 [`shared/config.md`](shared/config.md).
 
+### Jira
+
+`/android-plan` reads the ticket, and its related `[BE]` and `[UI]` tickets, from Jira through the
+Atlassian MCP server this plugin declares in `mcp.json`. Sign in once with your own Atlassian
+account when Copilot asks; `/mcp` shows whether it is connected. The plugin carries no token and
+never writes to Jira.
+
+The server is declared in every Copilot session once the plugin is installed, not only in Android
+repositories. Signed out, it costs nothing but an unconnected line in `/mcp`.
+
 ## Supported surfaces
 
 **Copilot CLI 1.0.85** — verified: hooks fire and deny, skills invoke other skills, the three gates
@@ -49,12 +59,13 @@ Details and evidence: [`docs/checks/2026-09-20-platform-checks.md`](docs/checks/
 | `/ticket <KEY>` | chain: plan → branch → develop → ship | at each gate below |
 | `/bugfix <KEY>` | the same, in fix mode | at each gate below |
 | `/android-ship` | chain: stages 05→10 | at gates 2 and 3 |
-| `/android-plan <KEY> [feature\|fix]` | 01+02 | **gate 1** — the plan |
+| `/android-plan <KEY> [feature\|fix]` | 01+02 | **gate 1** — the plan; stops first if a `[BE]` or `[UI]` ticket has not passed development |
 | `/android-branch` | 03 | — |
 | `/android-develop` | 04 | — |
 | `/android-lint` | 05 | — |
 | `/android-release-notes` | 06 | — |
 | `/android-test [scope]` | 07 | — |
+| `/android-review` | 07b | — advisory: findings are reported and repeated at gate 3 |
 | `/android-security-gate` | 08 | **gate 2** — high severity blocks the push |
 | `/android-commit-push` | 09 | **gate 3** — message, files and target, then your yes |
 | `/android-dist-note` | 10 | asks prod or QA |
@@ -87,8 +98,8 @@ interferes with unrelated projects.
 
 ```bash
 copilot --plugin-dir "$PWD"     # run the plugin without installing it
-./tests/lint-skills.sh          # frontmatter, references, no repo-specific strings, no ../ paths
-./tests/run.sh                  # 21 cases against both hooks, on scratch repositories
+./tests/lint-skills.sh          # frontmatter, references, skill names, mcp.json, no repo-specific strings, no ../ paths
+./tests/run.sh                  # 21 hook cases plus the diff-fingerprint check, on scratch repositories
 ```
 
 Run both before tagging a release: everyone auto-updates to latest, so a broken rail reaches the

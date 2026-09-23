@@ -36,5 +36,23 @@ case "$fc_out" in
   *) fail=$((fail+1)); printf 'FAIL fail-closed-without-lib\n  expected: deny\n  got: %s\n' "$fc_out" ;;
 esac
 
+# The diff fingerprint, taken from its contract in shared/ticket-file.md, must change when a new
+# (untracked) file's contents change — else a pass survives code added after the gate — and must
+# not change when nothing does.
+fp_cmd="$(awk '/^## The diff fingerprint/{s=1} s&&/^```bash/{c=1;next} c&&/^```/{exit} c' \
+  "$root/shared/ticket-file.md" | sed 's/<base_branch>/develop/g')"
+fp_dir="$(mktemp -d)"
+if ( cd "$fp_dir" && git init -q -b develop . && git config user.email t@example.com \
+     && git config user.name Test && printf 'a\n' > a.txt && git add a.txt && git commit -qm init \
+     && git checkout -qb feature/TA-1 && printf 'val x = 1\n' > New.kt \
+     && one="$(bash -c "$fp_cmd")" && again="$(bash -c "$fp_cmd")" \
+     && printf 'val y = 2\n' >> New.kt && two="$(bash -c "$fp_cmd")" \
+     && [ -n "$one" ] && [ "$one" = "$again" ] && [ "$one" != "$two" ] ); then
+  pass=$((pass+1))
+else
+  fail=$((fail+1)); printf 'FAIL fingerprint-covers-untracked-content\n  command: %s\n' "$fp_cmd"
+fi
+rm -rf "$fp_dir"
+
 printf '%d passed, %d failed\n' "$pass" "$fail"
 [ $fail -eq 0 ]

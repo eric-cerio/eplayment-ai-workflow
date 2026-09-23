@@ -15,8 +15,8 @@ Read `shared/config.md` and `shared/ticket-file.md`, then `reference.md` here.
 1. **Resolve the ticket key**: argument → branch name → ask.
 2. **Release notes**: apply `release_notes.mode` to `release_notes.file`, using
    `<jira_base><KEY>`.
-3. **Version**: apply `versioning.rule` to `versionName` in `build.gradle_file`.
-   **Never touch `versionCode`.**
+3. **Version**: apply `versioning.rule` to `versionName` in `build.gradle_file` — **once per
+   branch**: already changed from the base → say so and leave it. **Never touch `versionCode`.**
 4. **Register the branch** in `distribution.register_branch_in`, if that key names a workflow.
 5. **Report** every file you changed, before and after. **Stage nothing.**
 

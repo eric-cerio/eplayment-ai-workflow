@@ -22,7 +22,7 @@ Read `shared/config.md` and `shared/ticket-file.md`, then `reference.md` here.
    - No high-severity findings → record `result: pass` with the fingerprint.
    - High-severity findings → **the push is blocked.** The developer fixes them, or waives one by
      giving a written reason, which you record verbatim. Never invent a reason and never waive on
-     your own initiative.
+     your own initiative. No answer — nobody there to ask — is no waiver: record `result: fail`.
 6. **Write the result** to the ticket file and end with one line: whether the push is clear.
 
 Run every layer even when the first one finds something. A developer deserves the whole list at

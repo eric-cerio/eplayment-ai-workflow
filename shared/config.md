@@ -48,6 +48,15 @@ lint:
 security:
   guarded_files: []                     # may not change without explicit confirmation
   known_tracked_secrets: []             # already in git; reported once, never a per-run failure
+
+jira:                                   # optional; the defaults are the Eplayment Jira workflow
+  be_prefix: "[BE]"                     # summary prefix of a backend ticket
+  ui_prefix: "[UI]"                     # summary prefix of a UI/UX design ticket
+  passed_statuses: [QA TESTING, QA TESTED WITH FINDINGS, FOR STAGING DEPLOYMENT, STAGING TESTING,
+                    STAGING TESTED WITH FINDINGS, FOR PROD RELEASE, BLOCKED FOR PROD RELEASE,
+                    FOR PROD TESTING, IN PROD AND WORKING AS EXPECTED, FOR PUBLISHING, PUBLISHED]
+  findings_statuses: [QA TESTED WITH FINDINGS, STAGING TESTED WITH FINDINGS]
+  dead_statuses: [DROPPED, INVALID]
 ```
 
 ## Defaults
@@ -68,9 +77,26 @@ working against a newer config.
 | `distribution.open_draft_pr` | `true` |
 | `bugfix_branch_rule` | `ask` |
 | `lint.post_edit_checks`, `security.*` | empty |
+| `jira.be_prefix` | `[BE]` |
+| `jira.ui_prefix` | `[UI]` |
+| `jira.passed_statuses` | the eleven statuses above, `QA TESTING` onwards |
+| `jira.findings_statuses` | `[QA TESTED WITH FINDINGS, STAGING TESTED WITH FINDINGS]` |
+| `jira.dead_statuses` | `[DROPPED, INVALID]` |
 
 `app_tag`, `build.gradle_file`, `build.lint_task`, `build.test_task` and `release_notes.file` have
 **no defaults**. Without them, stop and send the user to `/android-onboard`.
+
+## Jira statuses
+
+- A related ticket has **passed development** only when `jira.passed_statuses` lists its status.
+  Everything else is **not passed** — `TO DO`, `DEVELOPMENT`, `FOR QAT DEPLOYMENT`, `BLOCKED`,
+  `CARRYOVER`, and any status added to the Jira workflow later. An unknown status fails closed.
+- `jira.dead_statuses` are not passed and are flagged separately: a dropped backend ticket usually
+  means the Android ticket needs rethinking, not waiting.
+- Statuses and prefixes compare ignoring case. A prefix matches at the start of the summary, after
+  leading whitespace.
+- A repository writes the `jira:` block only when its Jira project differs. A list it gives
+  **replaces** the default list; it is not merged with it.
 
 ## Finding the JDK
 

@@ -1,6 +1,6 @@
 ---
 name: ticket
-description: Run the full Android feature workflow for a Jira ticket - intake and plan, branch, optional implementation, then lint, version, tests, security gate, commit and push, and the distribution note. Use when the user gives a Jira key to work on, says they want to start a ticket or a feature, or types /ticket.
+description: Run the full Android feature workflow for a Jira ticket - intake and plan, branch, optional implementation, then lint, version, tests, code review, security gate, commit and push, and the distribution note. Use when the user gives a Jira key to work on, says they want to start a ticket or a feature, or types /ticket.
 ---
 
 # /ticket — the feature workflow
@@ -22,6 +22,7 @@ unfinished stage and say where you resumed from. An approved plan from yesterday
    - **N** → stop here and print: *"Write the code, then run `/android-ship`."*
      N is a legitimate answer. Do not argue with it, do not ask twice, and do not start writing
      anyway. Every stage after this one behaves identically either way.
-4. **`android-ship`** — stages 05 to 10, with gates 2 and 3 inside it.
+4. **`android-ship`** — stages 05 to 10 with the 07b code review, and gates 2 and 3
+   inside it.
 
 Never inline stages 05–10 here; `android-ship` owns them. Never skip a gate to save a round trip.
