@@ -1,0 +1,12 @@
+{
+  "name": "eplayment",
+  "interface": { "displayName": "Eplayment" },
+  "plugins": [
+    {
+      "name": "android-workflow",
+      "source": { "source": "local", "path": "./" },
+      "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+      "category": "Productivity"
+    }
+  ]
+}

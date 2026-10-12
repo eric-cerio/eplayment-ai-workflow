@@ -1,0 +1,11 @@
+{
+  "name": "eplayment",
+  "owner": { "name": "Eplayment R&D" },
+  "plugins": [
+    {
+      "name": "android-workflow",
+      "source": "./",
+      "description": "Eplayment Android development workflow, from Jira ticket to distribution note, with hook-enforced rails."
+    }
+  ]
+}

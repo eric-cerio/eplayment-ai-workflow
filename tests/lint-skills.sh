@@ -42,15 +42,57 @@ for skill in "$root"/skills/*/SKILL.md; do
   fi
 done
 
-# Plugin MCP servers (check 7): a v1-schema plugin reads only mcp.json at its root, and the
-# declaration carries a URL, never a credential — each developer signs in.
-[ -e "$root/mcp.json" ] || note "mcp.json: missing; android-plan needs the Atlassian server declared"
-[ -e "$root/.mcp.json" ] && note ".mcp.json: ignored by v1-schema plugins; the file must be mcp.json"
-if [ -e "$root/mcp.json" ]; then
-  grep -q '"mcpServers"' "$root/mcp.json" || note "mcp.json: no mcpServers object"
-  grep -qiE '"(headers|env|authorization|token|apikey|api_key|password|secret)"' "$root/mcp.json" \
-    && note "mcp.json: declares headers or credentials; each developer signs in instead"
+# MCP servers. Copilot and Codex read mcp.json, Claude Code .mcp.json, Gemini its manifest. Each
+# declares the Atlassian server by URL, never a credential — each developer signs in.
+for f in mcp.json .mcp.json gemini-extension.json; do
+  [ -e "$root/$f" ] || { note "$f: missing"; continue; }
+  grep -q '"mcpServers"' "$root/$f" || note "$f: no mcpServers object"
+  grep -q 'https://mcp.atlassian.com/v1/mcp' "$root/$f" || note "$f: does not declare the Atlassian server"
+  grep -qiE '"(headers|env|authorization|token|apikey|api_key|password|secret)"' "$root/$f" \
+    && note "$f: declares headers or credentials; each developer signs in instead"
+done
+
+# Manifests: one name everywhere, one version across the three manifests.
+manifest_field() { sed -n -E "s/^[[:space:]]*\"$2\"[[:space:]]*:[[:space:]]*\"([^\"]*)\".*/\1/p" "$1" | head -1; }
+for f in plugin.json .claude-plugin/plugin.json gemini-extension.json; do
+  [ -e "$root/$f" ] || { note "$f: missing"; continue; }
+  [ "$(manifest_field "$root/$f" name)" = android-workflow ] || note "$f: name is not android-workflow"
+done
+v="$(manifest_field "$root/plugin.json" version)"
+for f in .claude-plugin/plugin.json gemini-extension.json; do
+  [ -e "$root/$f" ] && [ "$(manifest_field "$root/$f" version)" != "$v" ] && note "$f: version differs from plugin.json ($v)"
+done
+for f in .claude-plugin/marketplace.json .agents/plugins/marketplace.json; do
+  [ -e "$root/$f" ] || { note "$f: missing"; continue; }
+  grep -q '"name": "android-workflow"' "$root/$f" || note "$f: does not list android-workflow"
+done
+
+# Hook wiring. Each event's matcher must name every tool that host uses to run a shell command or
+# edit a file, or a rail is silently skipped there. One entry per event, matcher on its own line.
+hj="$root/hooks/hooks.json"
+matcher_of() { grep -A3 "\"$1\"" "$hj" | sed -n -E 's/.*"matcher": "([^"]*)".*/\1/p' | head -1; }
+if [ -e "$hj" ]; then
+  for t in Bash Edit Write MultiEdit apply_patch; do
+    printf '%s' "|$(matcher_of PreToolUse)|" | grep -q "|$t|" || note "hooks/hooks.json: PreToolUse matcher misses $t"
+  done
+  for t in run_shell_command write_file replace; do
+    printf '%s' "|$(matcher_of BeforeTool)|" | grep -q "|$t|" || note "hooks/hooks.json: BeforeTool matcher misses $t"
+  done
+  for t in Edit Write MultiEdit apply_patch; do
+    printf '%s' "|$(matcher_of PostToolUse)|" | grep -q "|$t|" || note "hooks/hooks.json: PostToolUse matcher misses $t"
+  done
+  for t in write_file replace; do
+    printf '%s' "|$(matcher_of AfterTool)|" | grep -q "|$t|" || note "hooks/hooks.json: AfterTool matcher misses $t"
+  done
+else
+  note "hooks/hooks.json: missing"
 fi
+for f in "$hj" "$root/com.github.copilot/hooks/hooks.json"; do
+  [ -e "$f" ] || continue
+  while read -r ref; do
+    [ -x "$root/$ref" ] || note "${f#"$root"/}: runs $ref, which is missing or not executable"
+  done < <(grep -oE 'hooks/[a-z-]+\.sh' "$f" | sort -u)
+done
 
 [ $fail -eq 0 ] && echo "skill lint: OK"
 exit $fail
