@@ -1,7 +1,6 @@
 # expect: allow
 # match: post-edit-check-ran
 # hook: post-edit.sh
-# hosts: copilot
 # fixture: with-post-edit-check
 # kind: edit
 # path: $FIXTURE/app/src/main/java/ui/Screen.kt

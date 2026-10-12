@@ -1,6 +1,5 @@
 # expect: allow
 # hook: post-edit.sh
-# hosts: copilot
 # fixture: on-feature
 # kind: edit
 # path: $FIXTURE/app/build.gradle
