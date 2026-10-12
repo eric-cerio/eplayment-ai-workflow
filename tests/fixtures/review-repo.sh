@@ -16,7 +16,7 @@ git config user.email t@example.com; git config user.name Test
 pkg=app/src/main/java/com/example/cancel; di=app/src/main/java/com/example/di
 mkdir -p "$pkg" "$di" .ai/project
 cat > .ai/project/android-workflow.yml <<'YML'
-workflow_version: 0.2.0
+workflow_version: 0.3.0
 app_tag: TEST
 base_branch: develop
 build:
@@ -153,7 +153,7 @@ tdir="$(git rev-parse --git-common-dir)/android-workflow"; mkdir -p "$tdir"
   if [ "$passed" = "passed" ]; then
     printf 'review:\n  result: pass\n  diff: %s\nsecurity:\n  result: pass\n  diff: %s\n' "$fp" "$fp"
   fi
-  printf 'workflow_version: 0.2.0\n---\n\n## Acceptance criteria\n\n'
+  printf 'workflow_version: 0.3.0\n---\n\n## Acceptance criteria\n\n'
   printf -- '- Submitting a reason cancels the subscription and shows the returned status.\n'
   printf -- '- A failed cancel shows an error state.\n\n## From BE tickets\n\n'
   printf 'TA-2001: `POST subscriptions/cancel`, body `{reasonCode: String}`, returns `{status: String}`; 4xx on an unknown code. Callable on QA.\n\n'

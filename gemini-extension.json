@@ -1,0 +1,10 @@
+{
+  "name": "android-workflow",
+  "version": "0.3.0",
+  "description": "Eplayment Android development workflow: Jira intake with the related BE and UI tickets, plan, branch, lint, version, test, code review, security gate, commit and push, distribution note.",
+  "mcpServers": {
+    "atlassian": {
+      "httpUrl": "https://mcp.atlassian.com/v1/mcp"
+    }
+  }
+}

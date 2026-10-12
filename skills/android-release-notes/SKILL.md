@@ -21,4 +21,4 @@ Read `shared/config.md` and `shared/ticket-file.md`, then `reference.md` here.
 5. **Report** every file you changed, before and after. **Stage nothing.**
 
 Refuse to run on a protected branch: these edits belong on the working branch. If `HEAD` is on one,
-say so and point at `/android-branch`.
+say so and point at `android-branch`.

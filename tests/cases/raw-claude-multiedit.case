@@ -1,0 +1,5 @@
+# expect: deny
+# match: versionCode
+# fixture: on-feature
+# reply: claude
+{"session_id":"s","hook_event_name":"PreToolUse","cwd":"$FIXTURE","tool_name":"MultiEdit","tool_input":{"file_path":"$FIXTURE/app/build.gradle","edits":[{"old_string":"versionName \"3.4.27\"","new_string":"versionName \"3.4.28\""},{"old_string":"versionCode 60","new_string":"versionCode 61"}]}}

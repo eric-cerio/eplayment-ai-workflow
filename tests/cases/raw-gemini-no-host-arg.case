@@ -1,0 +1,5 @@
+# expect: deny
+# match: protected
+# fixture: on-feature
+# reply: gemini
+{"session_id":"s","hook_event_name":"BeforeTool","cwd":"$FIXTURE","tool_name":"run_shell_command","tool_input":{"command":"git push origin develop"}}

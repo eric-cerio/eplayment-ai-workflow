@@ -13,7 +13,7 @@ Read `shared/config.md` first, then `reference.md` in this folder.
 > under `skills/`. If you cannot find them, say so and stop rather than continuing without them.
 
 1. Read `app_tag`, `release_notes.file` and `build.gradle_file` from
-   `.ai/project/android-workflow.yml`. No config → stop and tell the user to run `/android-onboard`.
+   `.ai/project/android-workflow.yml`. No config → stop and tell the user to run `android-onboard`.
 2. Ask whether this is **PROD** or **QA** testing.
 3. Read `versionName` and `versionCode` from `build.gradle_file`.
 4. Read every line of `release_notes.file`, in file order.

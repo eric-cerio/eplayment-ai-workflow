@@ -1,0 +1,6 @@
+# expect: allow
+# match: post-edit-check-ran app/build.gradle post-edit-check-ran app/src/main/java/ui/Screen.kt
+# hook: post-edit.sh
+# fixture: with-post-edit-check
+# reply: codex
+{"session_id":"s","turn_id":"t","hook_event_name":"PostToolUse","cwd":"$FIXTURE","tool_name":"apply_patch","tool_input":{"command":"*** Begin Patch\n*** Update File: app/build.gradle\n@@\n-a\n+b\n*** Update File: app/src/main/java/ui/Screen.kt\n@@\n-a\n+b\n*** End Patch\n"}}

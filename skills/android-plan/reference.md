@@ -28,7 +28,7 @@ Server missing, signed out, or the site unreadable → stop and print:
 
 ```
 Jira is not reachable, so the related BE and UI tickets cannot be checked.
-Fix: run /mcp in Copilot, sign in to the Atlassian server with your own account, then rerun.
+Fix: sign in to the Atlassian MCP server with your own account (how, for your tool: "Signing in to Jira" in shared/hosts.md), then rerun.
 To continue without Jira, give a reason in words; it is recorded and shown again at the push.
 ```
 
@@ -101,7 +101,7 @@ asking.
     TA-2001  BE  QA TESTING    passed
     TA-2002  UI  DEVELOPMENT   not passed
     TA-2003  BE  DROPPED       dead — the Android ticket may need rethinking, not waiting
-  Rerun /android-plan TA-1234 once they reach QA TESTING or later,
+  Rerun `android-plan` for TA-1234 once they reach QA TESTING or later,
   or give a reason for each blocking ticket to continue now.
   ```
 
@@ -111,7 +111,7 @@ asking.
 - **None kept**, bugfix → print `no BE or UI tickets found`, set `result: none`, continue.
   Feature → ask once: `No BE or UI ticket found. Is this an Android-only change? (Y/N)`.
   Y → `result: android-only`, continue. N → stop: "Link the BE and UI tickets in Jira, then rerun
-  /android-plan <KEY>."
+  `android-plan` <KEY>."
 
 Record `related.checked` (now, with offset) and every kept ticket's `key`, `role`, `status` and
 `found`.
@@ -228,6 +228,6 @@ go.**
 
 Record the ticket fields and the plan in the ticket file as soon as you have them — a run that
 stops here still leaves everything behind. Record `plan_approved` **only after the go**, so
-`/android-develop` cannot mistake a presented plan for an approved one.
+`android-develop` cannot mistake a presented plan for an approved one.
 
 Write no code in this stage, not even a stub.

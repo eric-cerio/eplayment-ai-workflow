@@ -4,23 +4,44 @@ set -u
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 payload="$(cat)"
+explicit=""; [ "${1:-}" = "--host" ] && explicit="${2:-}"
 
 # Catastrophic path: the library is what defines allow/deny, so it cannot be relied on to report
 # its own absence. Emit a decision here, before sourcing, or a broken install silently allows.
-if ! . "$DIR/lib.sh" 2>/dev/null; then
+# Copilot's form for a Copilot payload (exit 0, verified); every other form, with exit 2, otherwise.
+fail_closed() {
   case "$payload" in
-    *"git push"*|*"git commit"*|*"git add"*|*"git reset"*)
-      printf '{"permissionDecision":"deny","permissionDecisionReason":"%s"}\n' \
-        "guard-rails hook could not load hooks/lib.sh; blocking this git command. Reinstall the plugin."
-      exit 0 ;;
+    *android-workflow-rails-canary*|*"git push"*|*"git commit"*|*"git add"*|*"git reset"*)
+      r="guard-rails hook could not load its library; blocking this command. Reinstall the plugin."
+      case "$payload" in
+        *'"toolArgs"'*) printf '{"permissionDecision":"deny","permissionDecisionReason":"%s"}\n' "$r"; exit 0 ;;
+      esac
+      printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"%s"},"decision":"deny","reason":"%s"}\n' "$r" "$r"
+      printf '%s\n' "$r" >&2
+      exit 2 ;;
   esac
   printf '{}\n'
   exit 0
-fi
+}
+{ . "$DIR/lib.sh" && . "$DIR/codec.sh"; } 2>/dev/null || fail_closed
+
+HOOK_HOST="$(detect_host "$payload" "$explicit")"
+decode "$payload"
 cwd="$(json_field "$payload" cwd)"; [ -n "$cwd" ] || cwd="$PWD"
-tool="$(json_field "$payload" toolName)"
-cmd="$(json_field "$payload" command)"
-path="$(json_field "$payload" path)"; [ -n "$path" ] || path="$(json_field "$payload" file_path)"
+cmd="$CMD"
+# A tool the codec does not list (or a payload in no known shape): the rails cannot be applied, so
+# git writes are refused rather than waved through. Its command is still findable for that decision.
+unrecognized=0
+if [ "$KIND" = other ] || [ "$HOOK_HOST" = unknown ]; then
+  unrecognized=1; cmd="$(json_field "$payload" command)"
+fi
+
+# The canary (shared/rails-check.md) proves this hook runs. It is matched against the command only,
+# so a file edit, a grep or a commit message that merely mentions it is not mistaken for it. It is
+# answered before any repository check, so the answer depends on nothing but the hook being wired in.
+case "$cmd" in
+  *android-workflow-rails-canary*) deny "rails live: the android-workflow guard hook is running." ;;
+esac
 
 # Fail closed for git commands that write, open for everything else.
 writes_git=0
@@ -35,6 +56,13 @@ root="$(repo_root "$cwd")" || allow
 [ -n "$root" ] || allow
 has_workflow_config "$root" || allow
 cfg="$root/.ai/project/android-workflow.yml"
+if [ "$unrecognized" -eq 1 ]; then
+  if [ "$writes_git" -eq 1 ]; then
+    tn="$(printf '%s' "${TOOL:-}" | tr -cd 'A-Za-z0-9_.-')"; [ -n "$tn" ] || tn=unknown
+    deny "Blocked: the guard hook did not recognize this tool ('$tn'), so it cannot check this git command. This tool is not supported by the android-workflow rails."
+  fi
+  allow
+fi
 
 # The configured list is a superset request, never a way to unprotect the three base branches:
 # a config narrowed by hand (or by a mistaken onboarding) cannot open a hole here.
@@ -42,7 +70,7 @@ protected="$(printf 'develop\nmain\nmaster\n%s\n' "$(cfg_list "$cfg" protected_b
 branch="$(current_branch "$root")"
 is_protected() { printf '%s\n' "$protected" | grep -qx -- "$1"; }
 
-if [ -n "$cmd" ]; then
+if [ "$KIND" = shell ] && [ -n "$cmd" ]; then
   case "$cmd" in
     *"git push"*)
       case "$cmd" in
@@ -85,15 +113,15 @@ if [ -n "$cmd" ]; then
   esac
 fi
 
-# File edits: versionCode inside a Gradle file.
-case "$tool" in
-  edit|create|str_replace_editor|apply_patch|write)
-    case "$path" in
-      *.gradle|*.gradle.kts)
-        case "$payload" in
-          *versionCode*) deny "Blocked: versionCode is owned by CI and release, never by this workflow." ;;
-        esac ;;
-    esac ;;
-esac
+# File edits: versionCode inside a Gradle file. The whole payload is searched, not one field, so an
+# edit list (MultiEdit) or a patch is covered as well as a single replacement.
+if [ "$KIND" = edit ]; then
+  case "$payload" in
+    *versionCode*)
+      if printf '%s\n' "$EDIT_PATHS" | grep -qE '\.gradle(\.kts)?$'; then
+        deny "Blocked: versionCode is owned by CI and release, never by this workflow."
+      fi ;;
+  esac
+fi
 
 allow

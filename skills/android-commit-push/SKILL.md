@@ -5,14 +5,14 @@ description: Commit and push the current Android ticket's work after showing the
 
 # Commit and push — stage 09 (gate 3)
 
-Read `shared/config.md` and `shared/ticket-file.md`, then `reference.md` here.
+Read `shared/config.md`, `shared/ticket-file.md` and `shared/rails-check.md`, then `reference.md` here.
 
 > **Finding these files:** they live in the **plugin root** — the nearest ancestor directory of
 > this skill file that contains `plugin.json`. Locate that directory first, then read
 > `<plugin-root>/shared/<file>.md`. They are not in the repository you are working in, and not
 > under `skills/`. If you cannot find them, say so and stop rather than continuing without them.
 
-1. **Refuse on a protected branch.** Point at `/android-branch`.
+1. **Refuse on a protected branch.** Point at `android-branch`.
 2. **Require a current security pass.** Recompute the diff fingerprint; if the ticket file has no
    matching `pass` or `waived`, run the `android-security-gate` skill now and continue only if it
    clears. The `review:` block is read, never required: the review is advisory.
@@ -23,6 +23,8 @@ Read `shared/config.md` and `shared/ticket-file.md`, then `reference.md` here.
    **Stop and wait.** Nothing is staged before the answer, and one yes covers staging, committing
    and pushing. **Only an explicit yes counts**: no answer — nobody there to ask, a
    non-interactive session — is a no. Stop with nothing staged, committed or pushed.
+4b. **Rails check, after the yes and before staging anything**, per `shared/rails-check.md`. If it
+    stops, nothing is staged, committed or pushed, whatever the answer at gate 3 was.
 5. **Stage exactly those files**, commit with no trailers, push the branch. **Never force-push.**
 6. **Record** `pushed: <sha>` in the ticket file.
 7. **Offer the draft PR** when `distribution.open_draft_pr` is true, per `reference.md`. Ask first:

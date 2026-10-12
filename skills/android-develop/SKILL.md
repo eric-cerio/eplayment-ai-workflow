@@ -13,7 +13,7 @@ Read `shared/config.md` and `shared/ticket-file.md`, then `reference.md` here.
 > under `skills/`. If you cannot find them, say so and stop rather than continuing without them.
 
 1. **Require an approved plan.** No `plan_approved` in the ticket file → **stop** and send the
-   developer to `/android-plan`. Never improvise one: gate 1 exists to be passed, not assumed.
+   developer to `android-plan`. Never improvise one: gate 1 exists to be passed, not assumed.
 2. **Re-read** the approved plan, and the repository's `.ai/project/architecture.md` and
    `conventions.md`.
 3. **Feature**: reuse what the plan listed, scaffold only the files it named, wire the layers,
@@ -22,7 +22,7 @@ Read `shared/config.md` and `shared/ticket-file.md`, then `reference.md` here.
 4. **Bugfix**: the smallest correct change, in the existing pattern. No refactoring beyond the fix.
 5. **Compose checks** after touching any `@Composable`.
 6. **Print** the files created and changed, plus any assumptions, and name the next step
-   (`/android-ship`, or the rest of the chain).
+   (`android-ship`, or the rest of the chain).
 
 Do not lint, test, version, commit or push here. The plan is the contract: if it is wrong, stop and
 say so rather than quietly doing something else.

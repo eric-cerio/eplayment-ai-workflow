@@ -1,0 +1,5 @@
+{
+  "name": "android-workflow",
+  "version": "0.3.0",
+  "description": "Eplayment Android development workflow: Jira intake with the related BE and UI tickets, plan, branch, lint, version, test, code review, security gate, commit and push, distribution note. Every stage runs on its own, or as one chain with the ticket and bugfix skills."
+}

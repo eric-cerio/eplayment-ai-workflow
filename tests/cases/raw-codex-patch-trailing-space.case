@@ -1,0 +1,5 @@
+# expect: deny
+# match: versionCode
+# fixture: on-feature
+# reply: codex
+{"session_id":"s","turn_id":"t","hook_event_name":"PreToolUse","cwd":"$FIXTURE","tool_name":"apply_patch","tool_input":{"command":"*** Begin Patch\n*** Update File: app/build.gradle \r\n@@\n-    versionCode 60\n+    versionCode 61\n*** End Patch\n"}}

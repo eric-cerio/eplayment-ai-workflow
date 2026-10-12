@@ -1,0 +1,4 @@
+# expect: allow
+# fixture: on-feature
+# reply: claude
+{"session_id":"s","hook_event_name":"PreToolUse","cwd":"$FIXTURE","tool_name":"Shell","tool_input":{"command":"ls"}}

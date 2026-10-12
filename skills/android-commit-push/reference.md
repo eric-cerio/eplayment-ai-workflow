@@ -4,7 +4,7 @@ Stage 09, gate 3. The last point where a person sees the change before it leaves
 
 ## Pre-flight, in order
 
-1. **HEAD is not on a protected branch.** On one → stop, name `/android-branch`, change nothing.
+1. **HEAD is not on a protected branch.** On one → stop, name `android-branch`, change nothing.
    The hook would deny the commit anyway; this refusal explains it instead of hitting a wall.
 2. **The security gate has passed for these exact changes.** Recompute the diff fingerprint and
    compare it with `security.diff` in the ticket file. Missing, `fail`, or a different fingerprint
@@ -47,7 +47,7 @@ Plus every waiver, quoted, so it is read one more time before it reaches a revie
 ```
 waivers:  security  "new dependency com.foo:bar" — vendor SDK required by TA-1234, agreed with the security owner
           related   TA-2002 (UI, DEVELOPMENT) — "Design signed off in the review call; ticket not moved yet"
-review:   2 must-fix findings, not fixed (advisory) — run /android-review to see them
+review:   2 must-fix findings, not fixed (advisory) — run android-review to see them
 ```
 
 A `jira-waived` intake is shown the same way, with the ticket's own key.
@@ -57,7 +57,7 @@ The review line comes from the ticket file's `review:` block:
 | In the file | Shown |
 |---|---|
 | `result: pass`, fingerprint current | `review:   clear` |
-| `result: findings`, fingerprint current | `review:   <n> must-fix findings, not fixed (advisory) — run /android-review to see them` |
+| `result: findings`, fingerprint current | `review:   <n> must-fix findings, not fixed (advisory) — run android-review to see them` |
 | fingerprint not the current one | the same line plus `— recorded against older code` |
 | no `review:` block | `review:   not run` |
 

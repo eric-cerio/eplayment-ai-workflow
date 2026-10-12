@@ -1,3 +1,4 @@
 # expect: allow
 # fixture: on-feature
-{"sessionId":"s","timestamp":0,"cwd":"$FIXTURE","toolName":"bash","toolArgs":{"command":"./gradlew testDebugUnitTest"}}
+# kind: shell
+# cmd: ./gradlew testDebugUnitTest

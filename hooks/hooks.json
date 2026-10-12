@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|MultiEdit|apply_patch",
+        "hooks": [{"type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT:-$PLUGIN_ROOT}/hooks/guard-rails.sh\"", "timeout": 10}]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|apply_patch",
+        "hooks": [{"type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT:-$PLUGIN_ROOT}/hooks/post-edit.sh\"", "timeout": 30}]
+      }
+    ],
+    "BeforeTool": [
+      {
+        "matcher": "run_shell_command|write_file|replace",
+        "hooks": [{"type": "command", "command": "\"${extensionPath}/hooks/guard-rails.sh\" --host gemini", "timeout": 10000}]
+      }
+    ],
+    "AfterTool": [
+      {
+        "matcher": "write_file|replace",
+        "hooks": [{"type": "command", "command": "\"${extensionPath}/hooks/post-edit.sh\" --host gemini", "timeout": 30000}]
+      }
+    ]
+  }
+}

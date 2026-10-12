@@ -15,6 +15,13 @@ for skill in "$root"/skills/*/SKILL.md; do
   grep -qE '^description: .{40,}$' "$skill" || note "$rel: 'description:' missing or shorter than 40 chars"
   [ "$(basename "$dir")" = "$(sed -n 's/^name: //p' "$skill" | head -1)" ] || note "$rel: folder name and 'name:' differ"
 
+  # Frontmatter is name and description only: the subset every host reads.
+  extra="$(awk 'NR==1{next} /^---$/{exit} /^[A-Za-z_-]+:/{sub(/:.*/,""); print}' "$skill" \
+           | grep -vxE 'name|description' || true)"
+  [ -z "$extra" ] || note "$rel: frontmatter key(s) other hosts may reject: $(printf '%s' "$extra" | tr '\n' ' ')"
+  desc_len="$(sed -n 's/^description: //p' "$skill" | head -1 | wc -c | tr -d ' ')"
+  [ "$desc_len" -le 1025 ] || note "$rel: description longer than 1024 characters"
+
   # Referenced files must exist: shared/* at the plugin root, others beside the skill.
   while read -r ref; do
     [ -n "$ref" ] || continue
@@ -42,15 +49,81 @@ for skill in "$root"/skills/*/SKILL.md; do
   fi
 done
 
-# Plugin MCP servers (check 7): a v1-schema plugin reads only mcp.json at its root, and the
-# declaration carries a URL, never a credential — each developer signs in.
-[ -e "$root/mcp.json" ] || note "mcp.json: missing; android-plan needs the Atlassian server declared"
-[ -e "$root/.mcp.json" ] && note ".mcp.json: ignored by v1-schema plugins; the file must be mcp.json"
-if [ -e "$root/mcp.json" ]; then
-  grep -q '"mcpServers"' "$root/mcp.json" || note "mcp.json: no mcpServers object"
-  grep -qiE '"(headers|env|authorization|token|apikey|api_key|password|secret)"' "$root/mcp.json" \
-    && note "mcp.json: declares headers or credentials; each developer signs in instead"
+# Skills and shared files are host-neutral; host specifics live in shared/hosts.md only.
+while read -r f; do
+  rel="${f#"$root"/}"
+  [ "$rel" = shared/hosts.md ] && continue
+  hit="$(grep -nE 'Copilot|Claude Code|Codex|Gemini' "$f" | head -1 || true)"
+  [ -z "$hit" ] || note "$rel:$hit — names a host; use shared/hosts.md"
+  slash="$(grep -nE '(^|[ `(])/(android-[a-z-]+|ticket|bugfix)([^a-z-]|$)' "$f" | head -1 || true)"
+  [ -z "$slash" ] || note "$rel:$slash — slash-invokes a workflow skill; name it in backticks instead"
+done < <(find "$root/skills" "$root/shared" -name '*.md')
+for s in ticket bugfix android-ship android-commit-push; do
+  grep -q 'shared/rails-check.md' "$root/skills/$s/SKILL.md" || note "skills/$s/SKILL.md: does not run shared/rails-check.md"
+done
+
+# MCP servers. Copilot and Codex read mcp.json, Claude Code .mcp.json, Gemini its manifest. Each
+# declares the Atlassian server by URL, never a credential — each developer signs in.
+for f in mcp.json .mcp.json gemini-extension.json; do
+  [ -e "$root/$f" ] || { note "$f: missing"; continue; }
+  grep -q '"mcpServers"' "$root/$f" || note "$f: no mcpServers object"
+  grep -q 'https://mcp.atlassian.com/v1/mcp' "$root/$f" || note "$f: does not declare the Atlassian server"
+  grep -qiE '"(headers|env|authorization|token|apikey|api_key|password|secret)"' "$root/$f" \
+    && note "$f: declares headers or credentials; each developer signs in instead"
+done
+
+# Manifests: one name everywhere, one version across the three manifests.
+manifest_field() { sed -n -E "s/^[[:space:]]*\"$2\"[[:space:]]*:[[:space:]]*\"([^\"]*)\".*/\1/p" "$1" | head -1; }
+for f in plugin.json .claude-plugin/plugin.json gemini-extension.json; do
+  [ -e "$root/$f" ] || { note "$f: missing"; continue; }
+  [ "$(manifest_field "$root/$f" name)" = android-workflow ] || note "$f: name is not android-workflow"
+done
+v="$(manifest_field "$root/plugin.json" version)"
+for f in .claude-plugin/plugin.json gemini-extension.json; do
+  [ -e "$root/$f" ] && [ "$(manifest_field "$root/$f" version)" != "$v" ] && note "$f: version differs from plugin.json ($v)"
+done
+for f in .claude-plugin/marketplace.json .agents/plugins/marketplace.json; do
+  [ -e "$root/$f" ] || { note "$f: missing"; continue; }
+  grep -q '"name": "android-workflow"' "$root/$f" || note "$f: does not list android-workflow"
+done
+
+# Hook wiring. Each event's matcher must name every tool that host uses to run a shell command or
+# edit a file, or a rail is silently skipped there. One entry per event, matcher on its own line.
+hj="$root/hooks/hooks.json"
+matcher_of() { grep -A3 "\"$1\"" "$hj" | sed -n -E 's/.*"matcher": "([^"]*)".*/\1/p' | head -1; }
+if [ -e "$hj" ]; then
+  for t in Bash Edit Write MultiEdit apply_patch; do
+    printf '%s' "|$(matcher_of PreToolUse)|" | grep -q "|$t|" || note "hooks/hooks.json: PreToolUse matcher misses $t"
+  done
+  for t in run_shell_command write_file replace; do
+    printf '%s' "|$(matcher_of BeforeTool)|" | grep -q "|$t|" || note "hooks/hooks.json: BeforeTool matcher misses $t"
+  done
+  for t in Edit Write MultiEdit apply_patch; do
+    printf '%s' "|$(matcher_of PostToolUse)|" | grep -q "|$t|" || note "hooks/hooks.json: PostToolUse matcher misses $t"
+  done
+  for t in write_file replace; do
+    printf '%s' "|$(matcher_of AfterTool)|" | grep -q "|$t|" || note "hooks/hooks.json: AfterTool matcher misses $t"
+  done
+else
+  note "hooks/hooks.json: missing"
 fi
+# Every tool a matcher routes here must have a decode mapping in hooks/codec.sh, or it decodes as
+# KIND=other and the edit rail is silently off for it.
+codec="$root/hooks/codec.sh"
+if [ -e "$hj" ] && [ -e "$codec" ]; then
+  decode_cases="$(sed -n '/^decode()/,/^}/p' "$codec" | grep -E '^ +[A-Za-z_|]+\)')"
+  while read -r t; do
+    [ -n "$t" ] || continue
+    printf '%s\n' "$decode_cases" | tr -d ' )' | tr '|' '\n' | grep -qx -- "$t" \
+      || note "hooks/hooks.json: matcher tool $t has no decode mapping in hooks/codec.sh"
+  done < <(sed -n -E 's/.*"matcher": "([^"]*)".*/\1/p' "$hj" | tr '|' '\n' | sort -u)
+fi
+for f in "$hj" "$root/com.github.copilot/hooks/hooks.json"; do
+  [ -e "$f" ] || continue
+  while read -r ref; do
+    [ -x "$root/$ref" ] || note "${f#"$root"/}: runs $ref, which is missing or not executable"
+  done < <(grep -oE 'hooks/[a-z-]+\.sh' "$f" | sort -u)
+done
 
 [ $fail -eq 0 ] && echo "skill lint: OK"
 exit $fail

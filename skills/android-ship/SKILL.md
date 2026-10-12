@@ -12,6 +12,8 @@ Read `shared/ticket-file.md` and resolve the ticket key: argument → branch nam
 > `<plugin-root>/shared/<file>.md`. They are not in the repository you are working in, and not
 > under `skills/`. If you cannot find them, say so and stop rather than continuing without them.
 
+Run the rails check in `shared/rails-check.md` before stage 05. If it stops, nothing below runs.
+
 Invoke these skills in order, each in full:
 
 | # | Skill | Stops for the developer |
@@ -26,7 +28,7 @@ Invoke these skills in order, each in full:
 
 **Stop at the first stage that fails**, and say which one and why. A failing test or a blocked
 security gate ends the chain; it does not get skipped so the push can proceed. The review is
-advisory and does not stop it — its findings are carried to gate 3. Rerunning `/android-ship`
+advisory and does not stop it — its findings are carried to gate 3. Rerunning `android-ship`
 after a fix is safe: stage 06 does not bump twice.
 
 Never do a stage's work yourself: each skill owns its rules, its config keys and its reporting.

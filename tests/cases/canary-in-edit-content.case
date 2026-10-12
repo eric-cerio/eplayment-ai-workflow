@@ -1,0 +1,6 @@
+# expect: allow
+# fixture: no-config
+# kind: edit
+# path: $FIXTURE/shared/rails-check.md
+# old: x
+# new: : android-workflow-rails-canary
