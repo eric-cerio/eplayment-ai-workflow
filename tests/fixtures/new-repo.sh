@@ -22,7 +22,7 @@ elif [ "$variant" != "no-config" ]; then
 fi
 if [ "$variant" = "full-config" ]; then
   cat > .ai/project/android-workflow.yml <<'YML'
-workflow_version: 0.2.0
+workflow_version: 0.3.0
 app_tag: TEST
 jira_base: https://eplayment.atlassian.net/browse/
 base_branch: develop
