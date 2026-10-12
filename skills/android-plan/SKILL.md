@@ -12,7 +12,7 @@ Read `shared/config.md` and `shared/ticket-file.md`, then `reference.md` here.
 > `<plugin-root>/shared/<file>.md`. They are not in the repository you are working in, and not
 > under `skills/`. If you cannot find them, say so and stop rather than continuing without them.
 
-Usage: `/android-plan <KEY> [feature|fix]`. No type given → ask which it is.
+Usage: `android-plan <KEY> [feature|fix]`. No type given → ask which it is.
 
 **Already approved?** `plan_approved` set in the ticket file → say so, name the next step, and
 stop. Re-plan only if the developer asks, and then read Jira again.
@@ -40,6 +40,6 @@ stop. Re-plan only if the developer asks, and then read Jira again.
 5. **Gate 1.** Ask for approval of the plan, and for a feature, of the pattern choice.
    **Wait for an explicit go.** Record `plan_approved` **only after the go**. No answer — nobody
    there to ask, a non-interactive session — is not a go.
-6. **Say what comes next**: `/android-branch`, or `/ticket <KEY>` to run the rest of the workflow.
+6. **Say what comes next**: `android-branch`, or `ticket <KEY>` to run the rest of the workflow.
 
-Write no code here, not even a stub. That is `/android-develop`, and only after approval.
+Write no code here, not even a stub. That is `android-develop`, and only after approval.

@@ -1,6 +1,6 @@
 ---
 name: android-onboard
-description: Set up an Android repository for the Copilot Android workflow by detecting its build, versioning, release-notes and distribution conventions and writing .ai/project/android-workflow.yml. Use when a repo has no workflow config, when another workflow skill says to run onboarding, or when adopting the workflow in a new Android project.
+description: Set up an Android repository for the Android workflow by detecting its build, versioning, release-notes and distribution conventions and writing .ai/project/android-workflow.yml. Use when a repo has no workflow config, when another workflow skill says to run onboarding, or when adopting the workflow in a new Android project.
 ---
 
 # Onboard a repository

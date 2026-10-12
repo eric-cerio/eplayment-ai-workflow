@@ -99,7 +99,7 @@ Check, and never block on either:
 - **R&D Handbook** — a connected server offering `lookup_person` and `get_page`.
   `android-review` uses it for the Android squad standards.
 
-Report each as connected or not, with the fix: "run `/mcp` and sign in".
+Report each as connected or not, with the fix: "sign in — see 'Signing in to Jira' in `shared/hosts.md`".
 
 ## Drafting the architecture docs
 
@@ -116,7 +116,7 @@ generalise from a framework blog:
 Head each drafted file with:
 
 ```
-> Draft, written by /android-onboard — review before relying on it.
+> Draft, written by `android-onboard` — review before relying on it.
 ```
 
 ## Legacy files to report

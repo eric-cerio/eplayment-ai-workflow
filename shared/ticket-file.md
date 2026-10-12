@@ -21,7 +21,7 @@ diff or a PR. Create the directory if it does not exist.
 
 In this order, stopping at the first that works:
 
-1. The argument the developer typed (`/android-test TA-1234`).
+1. The argument the developer typed (`android-test TA-1234`).
 2. The current branch name: the first `<LETTERS>-<DIGITS>` in it (`feature/TA-1234`,
    `subscriptions/TA-1234`, `bugfix/TA-1060` all give their key).
 3. Ask. Never invent one, and never carry on with a placeholder.
@@ -105,7 +105,7 @@ Waiver reasons are the developer's words, verbatim. They are repeated at gate 1 
 | everything else | nothing — they only read |
 
 Write a field as soon as it is known. A run that stops at a gate still leaves behind everything
-gathered up to that point, which is what lets `/ticket TA-1234` resume tomorrow.
+gathered up to that point, which is what lets `ticket TA-1234` resume tomorrow.
 
 ## The diff fingerprint
 

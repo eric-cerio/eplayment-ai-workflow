@@ -10,7 +10,7 @@ here, so the same plugin serves every Android repository.
 ## Missing config
 
 If `.ai/project/android-workflow.yml` does not exist, **stop** and tell the user to run
-`/android-onboard`. Do not guess the values and do not fall back to defaults for the repo-specific
+`android-onboard`. Do not guess the values and do not fall back to defaults for the repo-specific
 keys.
 
 ## The file
@@ -84,7 +84,7 @@ working against a newer config.
 | `jira.dead_statuses` | `[DROPPED, INVALID]` |
 
 `app_tag`, `build.gradle_file`, `build.lint_task`, `build.test_task` and `release_notes.file` have
-**no defaults**. Without them, stop and send the user to `/android-onboard`.
+**no defaults**. Without them, stop and send the user to `android-onboard`.
 
 ## Jira statuses
 
@@ -113,5 +113,5 @@ If none qualifies, say so and stop rather than running Gradle on an unknown JDK.
 ## Version drift
 
 `workflow_version` records the plugin version that wrote the config. If the installed plugin is
-older, print one line — "this repo expects android-workflow `<x.y.z>`; run `copilot plugin update`"
+older, print one line — "this repo expects android-workflow `<x.y.z>`; update the plugin (see 'Updating the plugin' in `shared/hosts.md`)"
 — and **carry on**. Drift never blocks a run.

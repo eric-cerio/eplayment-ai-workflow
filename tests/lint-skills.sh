@@ -15,6 +15,13 @@ for skill in "$root"/skills/*/SKILL.md; do
   grep -qE '^description: .{40,}$' "$skill" || note "$rel: 'description:' missing or shorter than 40 chars"
   [ "$(basename "$dir")" = "$(sed -n 's/^name: //p' "$skill" | head -1)" ] || note "$rel: folder name and 'name:' differ"
 
+  # Frontmatter is name and description only: the subset every host reads.
+  extra="$(awk 'NR==1{next} /^---$/{exit} /^[A-Za-z_-]+:/{sub(/:.*/,""); print}' "$skill" \
+           | grep -vxE 'name|description' || true)"
+  [ -z "$extra" ] || note "$rel: frontmatter key(s) other hosts may reject: $(printf '%s' "$extra" | tr '\n' ' ')"
+  desc_len="$(sed -n 's/^description: //p' "$skill" | head -1 | wc -c | tr -d ' ')"
+  [ "$desc_len" -le 1025 ] || note "$rel: description longer than 1024 characters"
+
   # Referenced files must exist: shared/* at the plugin root, others beside the skill.
   while read -r ref; do
     [ -n "$ref" ] || continue
@@ -40,6 +47,19 @@ for skill in "$root"/skills/*/SKILL.md; do
   if grep -qE '/Users/|eplayment-pixel-android|eplayment-android|keri-android|mannypay-android' "$skill"; then
     note "$rel: contains a repo-specific path or repo name"
   fi
+done
+
+# Skills and shared files are host-neutral; host specifics live in shared/hosts.md only.
+while read -r f; do
+  rel="${f#"$root"/}"
+  [ "$rel" = shared/hosts.md ] && continue
+  hit="$(grep -nE 'Copilot|Claude Code|Codex|Gemini' "$f" | head -1 || true)"
+  [ -z "$hit" ] || note "$rel:$hit — names a host; use shared/hosts.md"
+  slash="$(grep -nE '(^|[ `(])/(android-[a-z-]+|ticket|bugfix)([^a-z-]|$)' "$f" | head -1 || true)"
+  [ -z "$slash" ] || note "$rel:$slash — slash-invokes a workflow skill; name it in backticks instead"
+done < <(find "$root/skills" "$root/shared" -name '*.md')
+for s in ticket bugfix android-ship android-commit-push; do
+  grep -q 'shared/rails-check.md' "$root/skills/$s/SKILL.md" || note "skills/$s/SKILL.md: does not run shared/rails-check.md"
 done
 
 # MCP servers. Copilot and Codex read mcp.json, Claude Code .mcp.json, Gemini its manifest. Each

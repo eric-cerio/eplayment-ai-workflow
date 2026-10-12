@@ -55,7 +55,7 @@ Confirm the change does not weaken what the app already has:
 
 ## Layer 4 — review
 
-Where the surface offers a built-in security review (the CLI's `/security-review`), run it on the
+Where the surface offers a built-in security review (a `/security-review` command), run it on the
 diff so findings stay consistent with the rest of the organisation, and fold its output in.
 
 Where it does not (Android Studio), work through layers 2 and 3 as a deliberate second pass rather

@@ -12,7 +12,7 @@ Read `shared/config.md` and `shared/ticket-file.md`, then `reference.md` here.
 > `<plugin-root>/shared/<file>.md`. They are not in the repository you are working in, and not
 > under `skills/`. If you cannot find them, say so and stop rather than continuing without them.
 
-Usage: `/android-test [scope]`, where scope is a feature word, a package fragment, a class name, or
+Usage: `android-test [scope]`, where scope is a feature word, a package fragment, a class name, or
 `--all`.
 
 1. **Resolve the scope** as `reference.md` describes, and **list what matched before running**.

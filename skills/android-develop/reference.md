@@ -1,7 +1,7 @@
 # Development — rules
 
 Stage 04, and the one stage that is optional. The developer may write the code themselves and
-rejoin at stage 05 with `/android-ship`; the conventions below apply either way.
+rejoin at stage 05 with `android-ship`; the conventions below apply either way.
 
 ## The plan is the contract
 
