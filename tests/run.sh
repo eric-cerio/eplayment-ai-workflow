@@ -106,6 +106,19 @@ for broken in lib.sh codec.sh; do
     done
     chmod 644 "$root/hooks/$broken"
   done
+  # Documented limit: with the library unloaded only git writes and the canary are held, so the
+  # versionCode edit rail is off. shared/rails-check.md therefore treats that state as not live.
+  printf '# kind: edit\n# path: %s/app/build.gradle\n# old: versionCode 60\n# new: versionCode 61\n' "$root" > "$fc_case"
+  chmod 000 "$root/hooks/$broken"
+  for host in $HOSTS; do
+    payload="$("$root/tests/payloads/render.sh" "$host" "$fc_case" "$root")"
+    if [ "$host" = gemini ]; then
+      run_one "fail-closed-$broken[$host] versionCode edit is allowed (rail off)" "$host" guard-rails.sh allow "" "$payload" --host gemini
+    else
+      run_one "fail-closed-$broken[$host] versionCode edit is allowed (rail off)" "$host" guard-rails.sh allow "" "$payload"
+    fi
+  done
+  chmod 644 "$root/hooks/$broken"
 done
 rm -f "$fc_case"
 

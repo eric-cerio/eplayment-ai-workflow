@@ -1,5 +1,5 @@
 # expect: deny
-# match: did not recognize
+# match: did not recognize this tool ('powershell')
 # fixture: on-feature
 # reply: copilot
 {"cwd":"$FIXTURE","toolName":"powershell","toolArgs":{"command":"git push origin feature/TA-1234"}}

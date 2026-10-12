@@ -57,7 +57,10 @@ root="$(repo_root "$cwd")" || allow
 has_workflow_config "$root" || allow
 cfg="$root/.ai/project/android-workflow.yml"
 if [ "$unrecognized" -eq 1 ]; then
-  [ "$writes_git" -eq 1 ] && deny "Blocked: the guard hook did not recognize this tool's payload, so it cannot check this git command. Run tests/run.sh."
+  if [ "$writes_git" -eq 1 ]; then
+    tn="$(printf '%s' "${TOOL:-}" | tr -cd 'A-Za-z0-9_.-')"; [ -n "$tn" ] || tn=unknown
+    deny "Blocked: the guard hook did not recognize this tool ('$tn'), so it cannot check this git command. This tool is not supported by the android-workflow rails."
+  fi
   allow
 fi
 

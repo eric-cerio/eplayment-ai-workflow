@@ -107,6 +107,17 @@ if [ -e "$hj" ]; then
 else
   note "hooks/hooks.json: missing"
 fi
+# Every tool a matcher routes here must have a decode mapping in hooks/codec.sh, or it decodes as
+# KIND=other and the edit rail is silently off for it.
+codec="$root/hooks/codec.sh"
+if [ -e "$hj" ] && [ -e "$codec" ]; then
+  decode_cases="$(sed -n '/^decode()/,/^}/p' "$codec" | grep -E '^ +[A-Za-z_|]+\)')"
+  while read -r t; do
+    [ -n "$t" ] || continue
+    printf '%s\n' "$decode_cases" | tr -d ' )' | tr '|' '\n' | grep -qx -- "$t" \
+      || note "hooks/hooks.json: matcher tool $t has no decode mapping in hooks/codec.sh"
+  done < <(sed -n -E 's/.*"matcher": "([^"]*)".*/\1/p' "$hj" | tr '|' '\n' | sort -u)
+fi
 for f in "$hj" "$root/com.github.copilot/hooks/hooks.json"; do
   [ -e "$f" ] || continue
   while read -r ref; do

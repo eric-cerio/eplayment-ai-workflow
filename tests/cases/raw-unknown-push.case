@@ -1,5 +1,5 @@
 # expect: deny
-# match: did not recognize
+# match: did not recognize this tool ('unknown')
 # fixture: on-feature
 # reply: unknown
 {"cwd":"$FIXTURE","tool":"shell","args":{"command":"git push origin feature/TA-1234"}}

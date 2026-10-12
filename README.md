@@ -54,7 +54,9 @@ gemini extensions install https://github.com/eric-cerio/eplayment-ai-workflow
 approved for company work cannot be used on company code or Jira data. This plugin supporting a
 tool does not approve it; ask before installing it for real work.
 
-Then, once per repository, run the `android-onboard` skill (how to run a skill in your tool:
+### First use
+
+Once per repository, run the `android-onboard` skill (how to run a skill in your tool:
 [`shared/hosts.md`](shared/hosts.md)).
 
 It detects the repo's build, versioning, release-notes and distribution conventions and writes
@@ -64,7 +66,7 @@ It detects the repo's build, versioning, release-notes and distribution conventi
 ### Jira
 
 `android-plan` reads the ticket, and its related `[BE]` and `[UI]` tickets, from Jira through the
-Atlassian MCP server this plugin declares in `mcp.json`. Sign in once with your own Atlassian account — `shared/hosts.md` has the command for each tool. The plugin carries no token and
+Atlassian MCP server this plugin declares in `mcp.json`, `.mcp.json` and `gemini-extension.json` (each tool reads its own). Sign in once with your own Atlassian account — `shared/hosts.md` has the command for each tool. The plugin carries no token and
 never writes to Jira.
 
 The server is declared in every session of every tool once the plugin is installed, not only in Android repositories. Signed out, it costs nothing but an unconnected server line.
@@ -79,8 +81,10 @@ The server is declared in every session of every tool once the plugin is install
 | Gemini CLI | — | built from documentation, **unverified** — `docs/checks/host-checklist.md` |
 | Android Studio (Copilot plugin) | 1.11.0 | partly verified (below) |
 
-On Copilot and Claude Code: hooks fire and deny, skills invoke other skills, the three gates hold,
-and a run resumes from its ticket file.
+What was checked: Copilot 1.0.85 (2026-09-20 checks) verified hooks, the gates and resuming from the
+ticket file; the 1.0.89 re-run covered the canary and a protected-branch push deny. Claude Code 2.1.296
+covered the canary, a push deny, a versionCode edit deny, a git status allow, skill listing and
+`android-ship`'s rails check. Nothing beyond that is claimed.
 
 **Android Studio** — partly verified. It loads skills that live in a
 repository and runs them when asked in plain words, but does not offer them as slash commands.
