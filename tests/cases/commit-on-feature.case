@@ -1,3 +1,4 @@
 # expect: allow
 # fixture: on-feature
-{"sessionId":"s","timestamp":0,"cwd":"$FIXTURE","toolName":"bash","toolArgs":{"command":"git commit -m \"TA-1234: x\""}}
+# kind: shell
+# cmd: git commit -m "TA-1234: x"

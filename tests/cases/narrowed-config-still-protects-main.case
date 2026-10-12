@@ -1,4 +1,5 @@
 # expect: deny
 # match: protected
 # fixture: narrowed-config
-{"sessionId":"s","timestamp":0,"cwd":"$FIXTURE","toolName":"bash","toolArgs":{"command":"git push origin main"}}
+# kind: shell
+# cmd: git push origin main

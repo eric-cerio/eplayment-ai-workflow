@@ -1,31 +1,90 @@
 #!/usr/bin/env bash
-# Runs every tests/cases/*.case against hooks/guard-rails.sh (or the hook named in the case).
+# Runs every tests/cases/*.case against its hook once per host, with the payload that host sends
+# (tests/payloads/render.sh), and checks the reply is in that host's form. A case with a body is a
+# raw payload, run once, its reply form named by '# reply:'.
 set -u
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+HOSTS="copilot"
 pass=0; fail=0
+errf="$(mktemp)"
+hdr() { sed -n "s/^# $1: //p" "$2" | head -1; }
+
+# verdict <label> <host> <hook> <expect> <match> <rc> <stdout> <stderr>
+verdict() {
+  label="$1"; host="$2"; hook="$3"; expect="$4"; match="$5"; rc="$6"; out="$7"; err="$8"; why=""
+  if [ "$expect" = deny ]; then
+    case "$host" in
+      copilot) [ "$rc" -eq 0 ] || why="$why exit=$rc(want 0);"
+               case "$out" in *'"permissionDecision":"deny"'*) ;; *) why="$why no copilot deny on stdout;" ;; esac ;;
+      claude|codex)
+               [ "$rc" -eq 2 ] || why="$why exit=$rc(want 2);"
+               case "$out" in *'"hookSpecificOutput"'*'"permissionDecision":"deny"'*) ;; *) why="$why no hookSpecificOutput deny;" ;; esac ;;
+      gemini)  [ "$rc" -eq 2 ] || why="$why exit=$rc(want 2);"
+               case "$out" in *'"decision":"deny"'*) ;; *) why="$why no gemini decision deny;" ;; esac ;;
+      unknown) [ "$rc" -eq 2 ] || why="$why exit=$rc(want 2);"
+               case "$out" in *'"permissionDecision":"deny"'*'"decision":"deny"'*) ;; *) why="$why not denied in every form;" ;; esac ;;
+    esac
+    if [ -n "$match" ]; then
+      case "$host" in
+        copilot) case "$out" in *"$match"*) ;; *) why="$why '$match' not on stdout;" ;; esac ;;
+        *)       case "$err" in *"$match"*) ;; *) why="$why '$match' not on stderr;" ;; esac ;;
+      esac
+    fi
+  else
+    [ "$rc" -eq 0 ] || why="$why exit=$rc(want 0);"
+    case "$out" in *'"deny"'*) why="$why denied;" ;; esac
+    if [ -n "$match" ]; then
+      case "$out" in *"$match"*) ;; *) why="$why '$match' not on stdout;" ;; esac
+      if [ "$hook" = post-edit.sh ]; then
+        case "$host" in
+          copilot) key='"additionalContext"' ;;
+          claude|codex) key='"hookSpecificOutput"' ;;
+          gemini) key='"systemMessage"' ;;
+          *) key='' ;;
+        esac
+        case "$out" in *"$key"*) ;; *) why="$why advice not in $host form;" ;; esac
+      fi
+    fi
+  fi
+  if [ -z "$why" ]; then pass=$((pass+1)); else
+    fail=$((fail+1)); printf 'FAIL %s\n  %s\n  stdout: %s\n  stderr: %s\n' "$label" "$why" "$out" "$err"
+  fi
+}
+
+# run_one <label> <host> <hook> <expect> <match> <payload> [hook args…]
+run_one() {
+  label="$1"; host="$2"; hook="$3"; expect="$4"; match="$5"; payload="$6"; shift 6
+  out="$(printf '%s' "$payload" | "$root/hooks/$hook" "$@" 2>"$errf")"; rc=$?
+  verdict "$label" "$host" "$hook" "$expect" "$match" "$rc" "$out" "$(cat "$errf")"
+}
+
 for case_file in "$root"/tests/cases/*.case; do
   name="$(basename "$case_file" .case)"
-  expect="$(sed -n 's/^# expect: //p' "$case_file" | head -1)"
-  match="$(sed -n 's/^# match: //p' "$case_file" | head -1)"
-  fixture="$(sed -n 's/^# fixture: //p' "$case_file" | head -1)"
-  hook="$(sed -n 's/^# hook: //p' "$case_file" | head -1)"; hook="${hook:-guard-rails.sh}"
+  expect="$(hdr expect "$case_file")"; match="$(hdr match "$case_file")"
+  fixture="$(hdr fixture "$case_file")"
+  hook="$(hdr hook "$case_file")"; hook="${hook:-guard-rails.sh}"
+  only="$(hdr hosts "$case_file")"
   if [ ! -x "$root/hooks/$hook" ]; then
     printf 'FAIL %s\n  hook not executable: hooks/%s\n' "$name" "$hook"; fail=$((fail+1)); continue
   fi
   dir=""; [ -n "$fixture" ] && dir="$("$root/tests/fixtures/new-repo.sh" "$fixture")"
-  payload="$(grep -v '^# ' "$case_file" | sed "s#\$FIXTURE#${dir}#g")"
-  out="$(printf '%s' "$payload" | "$root/hooks/$hook" 2>&1)"; rc=$?
-  decision="allow"
-  case "$out" in *'"deny"'*) decision="deny" ;; esac
-  ok=1
-  [ $rc -eq 0 ] || { ok=0; out="hook exited $rc: $out"; }
-  [ "$decision" = "$expect" ] || ok=0
-  if [ -n "$match" ]; then case "$out" in *"$match"*) ;; *) ok=0 ;; esac; fi
-  if [ $ok -eq 1 ]; then pass=$((pass+1)); else
-    fail=$((fail+1)); printf 'FAIL %s\n  expected: %s %s\n  got: %s\n' "$name" "$expect" "$match" "$out"
+  raw="$(grep -v '^#' "$case_file" | grep -v '^[[:space:]]*$' || true)"
+  if [ -n "$raw" ]; then
+    reply="$(hdr reply "$case_file")"
+    run_one "$name" "$reply" "$hook" "$expect" "$match" "$(printf '%s' "$raw" | sed "s#\$FIXTURE#${dir}#g")"
+  else
+    for host in ${only:-$HOSTS}; do
+      payload="$("$root/tests/payloads/render.sh" "$host" "$case_file" "$dir")"
+      if [ "$host" = gemini ]; then
+        run_one "$name[$host]" "$host" "$hook" "$expect" "$match" "$payload" --host gemini
+      else
+        run_one "$name[$host]" "$host" "$hook" "$expect" "$match" "$payload"
+      fi
+    done
   fi
   [ -n "$dir" ] && rm -rf "$dir"
 done
+
 # Fail-closed: a hook that cannot load its library must still block git writes.
 lib="$root/hooks/lib.sh"
 chmod 000 "$lib"
@@ -54,5 +113,6 @@ else
 fi
 rm -rf "$fp_dir"
 
+rm -f "$errf"
 printf '%d passed, %d failed\n' "$pass" "$fail"
 [ $fail -eq 0 ]
