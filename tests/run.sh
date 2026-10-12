@@ -23,6 +23,7 @@ verdict() {
                case "$out" in *'"decision":"deny"'*) ;; *) why="$why no gemini decision deny;" ;; esac ;;
       unknown) [ "$rc" -eq 2 ] || why="$why exit=$rc(want 2);"
                case "$out" in *'"permissionDecision":"deny"'*'"decision":"deny"'*) ;; *) why="$why not denied in every form;" ;; esac ;;
+      *)       why="$why unknown reply form '$host';" ;;
     esac
     if [ -n "$match" ]; then
       case "$host" in
@@ -40,7 +41,7 @@ verdict() {
           copilot) key='"additionalContext"' ;;
           claude|codex) key='"hookSpecificOutput"' ;;
           gemini) key='"systemMessage"' ;;
-          *) key='' ;;
+          *) key=''; why="$why unknown reply form '$host';" ;;
         esac
         case "$out" in *"$key"*) ;; *) why="$why advice not in $host form;" ;; esac
       fi
@@ -71,10 +72,12 @@ for case_file in "$root"/tests/cases/*.case; do
   raw="$(grep -v '^#' "$case_file" | grep -v '^[[:space:]]*$' || true)"
   if [ -n "$raw" ]; then
     reply="$(hdr reply "$case_file")"
+    if [ -z "$reply" ]; then fail=$((fail+1)); printf 'FAIL %s\n  raw case has no # reply:\n' "$name"; [ -n "$dir" ] && rm -rf "$dir"; continue; fi
     run_one "$name" "$reply" "$hook" "$expect" "$match" "$(printf '%s' "$raw" | sed "s#\$FIXTURE#${dir}#g")"
   else
     for host in ${only:-$HOSTS}; do
-      payload="$("$root/tests/payloads/render.sh" "$host" "$case_file" "$dir")"
+      payload="$("$root/tests/payloads/render.sh" "$host" "$case_file" "$dir")" || payload=""
+      if [ -z "$payload" ]; then fail=$((fail+1)); printf 'FAIL %s[%s]\n  render failed\n' "$name" "$host"; continue; fi
       if [ "$host" = gemini ]; then
         run_one "$name[$host]" "$host" "$hook" "$expect" "$match" "$payload" --host gemini
       else
