@@ -88,4 +88,31 @@ claude -p --plugin-dir "$P" "Run the probe-a skill." 2>&1 | tail -20
 
 ## Live verification
 
-Recorded in Task 9.
+Run 2026-10-12 against the working copy (`--plugin-dir`), each in a throwaway fixture from
+`tests/fixtures/new-repo.sh on-feature` (no remote, deleted afterwards). Claude Code 2.1.296; Copilot CLI 1.0.89.
+Raw outputs were kept in the session scratchpad.
+
+| # | Host | Version | Check | Result |
+|---|---|---|---|---|
+| 1 | Claude Code | 2.1.296 | canary `: android-workflow-rails-canary` | **Pass** — blocked: `PreToolUse:Bash hook error: rails live: the android-workflow guard hook is running.` |
+| 2 | Claude Code | 2.1.296 | `git push origin develop` | **Pass** — blocked: `Blocked: 'develop' is protected. Push your working branch instead (feature/<KEY> or bugfix/<name>).` |
+| 3 | Claude Code | 2.1.296 | Edit `versionCode 60` to `61` | **Pass** — blocked: `PreToolUse:Edit hook error: Blocked: versionCode is owned by CI and release, never by this workflow.`; `grep -c 'versionCode 60' app/build.gradle` printed `1` |
+| 4 | Claude Code | 2.1.296 | `git status` | **Pass** — ran, `nothing to commit, working tree clean` |
+| 5 | Claude Code | 2.1.296 | skill discovery | **Pass** — 14 skills listed: android-branch, android-commit-push, android-develop, android-dist-note, android-lint, android-onboard, android-plan, android-release-notes, android-review, android-security-gate, android-ship, android-test, bugfix, ticket |
+| 6 | Claude Code | 2.1.296 | `android-ship` stops after rails check | **Pass on rerun** — see note; reported `The rails check passed: the rails are live` (canary blocked with `rails live: ...`), ticket TA-1234, stage 05 not run |
+| 7 | Copilot CLI | 1.0.89 | canary | **Pass** — `Denied by preToolUse hook: rails live: the android-workflow guard hook is running.` |
+| 8 | Copilot CLI | 1.0.89 | `git push origin develop` | **Pass** — `Denied by preToolUse hook: Blocked: 'develop' is protected. Push your working branch instead (feature/<KEY> or bugfix/<name>).` |
+
+Notes:
+
+- Commands used `--allowedTools=Bash,Edit` (with `=`) and the prompt on stdin, per Task 1's finding.
+- Check 6, first run: `claude -p ... --allowedTools=Bash` stopped before the rails check, because reading
+  `shared/ticket-file.md` and `shared/rails-check.md` from the plugin folder was refused (the folder is outside
+  the fixture's working directory and was not allowed in that headless session). This was a permission
+  setup problem, not a hook or skill failure. Rerun with `--add-dir "$PLUGIN" --allowedTools=Bash,Read`
+  passed. In a real install the plugin folder may need the same read access in headless mode.
+- `claude plugin validate` still warns that `BeforeTool`/`AfterTool` are ignored at runtime (accepted, controller
+  Ruling 3). No other startup error was seen in the command output; `--debug` was not used, so the debug log was
+  not inspected.
+- No command in the Copilot or Claude Code rows of `shared/hosts.md` was contradicted by these runs (only the hook
+  behaviour and skill list were exercised).
