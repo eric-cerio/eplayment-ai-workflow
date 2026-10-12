@@ -27,16 +27,21 @@ fail_closed() {
 
 HOOK_HOST="$(detect_host "$payload" "$explicit")"
 decode "$payload"
-# The canary (shared/rails-check.md) proves this hook runs. It is answered before anything else, in
-# every repository, so the answer depends on nothing but the hook being wired in.
-case "$payload" in
-  *android-workflow-rails-canary*) deny "rails live: the android-workflow guard hook is running." ;;
-esac
 cwd="$(json_field "$payload" cwd)"; [ -n "$cwd" ] || cwd="$PWD"
 cmd="$CMD"
 # A tool the codec does not list (or a payload in no known shape): the rails cannot be applied, so
 # git writes are refused rather than waved through. Its command is still findable for that decision.
-[ "$KIND" = other ] && cmd="$(json_field "$payload" command)"
+unrecognized=0
+if [ "$KIND" = other ] || [ "$HOOK_HOST" = unknown ]; then
+  unrecognized=1; cmd="$(json_field "$payload" command)"
+fi
+
+# The canary (shared/rails-check.md) proves this hook runs. It is matched against the command only,
+# so a file edit, a grep or a commit message that merely mentions it is not mistaken for it. It is
+# answered before any repository check, so the answer depends on nothing but the hook being wired in.
+case "$cmd" in
+  *android-workflow-rails-canary*) deny "rails live: the android-workflow guard hook is running." ;;
+esac
 
 # Fail closed for git commands that write, open for everything else.
 writes_git=0
@@ -51,7 +56,7 @@ root="$(repo_root "$cwd")" || allow
 [ -n "$root" ] || allow
 has_workflow_config "$root" || allow
 cfg="$root/.ai/project/android-workflow.yml"
-if [ "$KIND" = other ]; then
+if [ "$unrecognized" -eq 1 ]; then
   [ "$writes_git" -eq 1 ] && deny "Blocked: the guard hook did not recognize this tool's payload, so it cannot check this git command. Run tests/run.sh."
   allow
 fi

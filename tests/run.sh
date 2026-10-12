@@ -91,6 +91,7 @@ done
 # Fail-closed: a hook that cannot load lib.sh or codec.sh must still block git writes and the
 # canary, on every host, in that host's form.
 fc_case="$(mktemp)"
+trap 'chmod 644 "$root/hooks/lib.sh" "$root/hooks/codec.sh"' EXIT INT TERM
 for broken in lib.sh codec.sh; do
   for cmd in 'git push origin feature/x' ': android-workflow-rails-canary'; do
     printf '# kind: shell\n# cmd: %s\n' "$cmd" > "$fc_case"
