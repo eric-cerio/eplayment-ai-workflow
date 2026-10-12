@@ -1,12 +1,12 @@
 # Claude Code platform checks — 2026-10-12
 
-Run against Claude Code **2.1.296** on macOS 25.4, with a throwaway plugin (`probe`, two skills, one
+Run against Claude Code **2.1.296** on macOS 26.4.1 (Darwin 25.4.0), with a throwaway plugin (`probe`, two skills, one
 `hooks/hooks.json` holding both a Claude Code `PreToolUse` entry and a Gemini `BeforeTool` entry).
 The hook script logs every payload to `payload.log` and exits 2 when the payload contains `probe-deny`.
 
 | # | Check | Result |
 |---|---|---|
-| a | Claude Code loads a `hooks/hooks.json` that also holds `BeforeTool` keys | **Fail** — it loads and runs the `PreToolUse` entry, but `claude plugin validate` warns on `BeforeTool` (see below) |
+| a | Claude Code loads a `hooks/hooks.json` that also holds `BeforeTool` keys | **Pass with warning** — `PreToolUse` loads and fires; `claude plugin validate` warns `hooks.BeforeTool: unknown hook event; entry ignored at runtime` (exit 0) |
 | b | `${CLAUDE_PLUGIN_ROOT:-$PLUGIN_ROOT}` resolves in a hook command | **Pass** — `log.sh` ran and wrote `payload.log` |
 | c | Exit 2 + stderr denies a Bash call | **Pass** — `echo probe-deny` was blocked with "probe denied by hook" |
 | d | Payload field names | Recorded below |
@@ -24,11 +24,15 @@ Validating hooks: .../probe-plugin/hooks/hooks.json
 ✔ Validation passed with warnings
 ```
 
-The task's rule is that any warning naming `BeforeTool` is a fail for (a), so (a) is recorded as **Fail**.
-Nuance for the decision: validation still *passes* (exit 0), the warning says the unknown entry is
-"ignored at runtime", and the `PreToolUse` entry in the same file did load and fire (b, c). So the merged
-file works on Claude Code in practice; the cost is a validator warning on every `claude plugin validate`.
-The only other validator warning was the missing `author` field in `plugin.json`.
+Validation passes (exit 0). The warning says the unknown entry is "ignored at runtime", and the
+`PreToolUse` entry in the same file loaded and fired (b, c). The task's literal rule treated any warning
+naming `BeforeTool` as a fail; the controller ruled that spec 5.1's fallback applies only if Claude Code
+*rejects* `BeforeTool`, which it does not.
+The other warning in the same validate output was the missing `author` field in `plugin.json`.
+
+**Decision.** The warning is accepted because Claude Code ignores, rather than rejects, Gemini's keys.
+The plan proceeds. If a future Claude Code rejects unknown events, the rails canary makes it a visible
+stop and the gemini-branch fallback is needed.
 
 ## b, c, d. Hook run
 
@@ -40,8 +44,7 @@ PreToolUse:Bash hook error: ["${CLAUDE_PLUGIN_ROOT:-$PLUGIN_ROOT}/hooks/log.sh"]
 ```
 
 The error text echoes the command as configured (unexpanded), but the script did execute: `payload.log`
-exists and holds two lines, and the stderr text came from `log.sh`. The two calls were logged in parallel,
-deny first.
+exists and holds two lines, and the stderr text came from `log.sh`. `payload.log` lists the deny call first, then the allow call.
 
 ### The payload shape (d)
 
@@ -69,9 +72,11 @@ deny first.
 ```bash
 claude --version
 claude plugin validate "$P"
+# (every command ran from `cd "$SCRATCH"`, the session scratchpad; `$P` as above)
 # first attempt failed: `--allowedTools Bash --debug "<prompt>"` — both flags take a variadic/optional
 # value and swallowed the prompt ("Input must be provided either through stdin or as a prompt argument").
-# Flag problem, unrelated to the probe. Rerun passes the prompt on stdin and uses --allowedTools=Bash:
+# Flag problem, unrelated to the probe. NOT run verbatim from the brief: the rerun delivers the prompt on
+# stdin instead of as an argument and uses --allowedTools=Bash:
 echo "Run the shell command: echo probe-allow. Then run the shell command: echo probe-deny. Report exactly what happened to each." \
   | claude -p --plugin-dir "$P" --allowedTools=Bash --debug > "$SCRATCH/probe-run.txt" 2>&1
 cat "$P/payload.log"
