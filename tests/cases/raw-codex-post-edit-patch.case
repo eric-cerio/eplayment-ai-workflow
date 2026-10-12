@@ -1,5 +1,5 @@
 # expect: allow
-# match: Screen.kt
+# match: post-edit-check-ran app/build.gradle post-edit-check-ran app/src/main/java/ui/Screen.kt
 # hook: post-edit.sh
 # fixture: with-post-edit-check
 # reply: codex
