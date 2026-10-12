@@ -22,7 +22,7 @@ same safety as one on Copilot, without a second copy of the skills to keep in st
 |---|---|
 | Hosts in this version | Copilot (existing), Claude Code, Codex CLI, Gemini CLI |
 | Rails | Hook-enforced on every supported host. A host that cannot deny a tool call before it runs is not supported |
-| Packaging | One repository, one manifest per host, one rails engine. No build step |
+| Packaging | One repository, one rails engine. Copilot and Codex share the root `plugin.json`; Claude Code and Gemini get their own manifest. No build step |
 | Verification | Copilot and Claude Code verified on a real install. Codex and Gemini built from their documentation and marked **unverified** until someone runs the checks |
 | Silent hook failure | A canary command the hook always denies; the chains and the commit stage stop if it runs |
 | Out of scope | Cursor; Android Studio plugin verification (unchanged); Gemini custom-command TOML files |
@@ -46,12 +46,13 @@ user or admin can turn off. Section 6 exists because of that.
 ## 5. Layout and hook wiring
 
 ```
-plugin.json                          Copilot manifest (unchanged)
+plugin.json                          Copilot and Codex manifest (Agent Plugins v1, unchanged)
 .claude-plugin/plugin.json           Claude Code manifest
-.codex-plugin/plugin.json            Codex manifest: "skills": "./skills", "mcpServers": "./.mcp.json"
+.claude-plugin/marketplace.json      Claude Code marketplace: one plugin, source "./"
+.agents/plugins/marketplace.json     Codex marketplace: one plugin, source path "./"
 gemini-extension.json                Gemini manifest: mcpServers (atlassian)
-mcp.json                             Copilot MCP (unchanged)
-.mcp.json                            Claude Code and Codex MCP
+mcp.json                             Copilot and Codex MCP (unchanged)
+.mcp.json                            Claude Code MCP
 com.github.copilot/hooks/hooks.json  Copilot hooks (unchanged)
 hooks/hooks.json                     Claude Code, Codex and Gemini hooks — one merged file
 hooks/guard-rails.sh                 the rails (unchanged logic)
@@ -61,7 +62,10 @@ hooks/codec.sh                       NEW: host detection, payload decoding, repl
 skills/, shared/                     unchanged location
 ```
 
-All four manifests carry the same `name` (`android-workflow`), `version` and `description`.
+Codex reads the root `plugin.json` (Agent Plugins v1) and `mcp.json`, the files Copilot already
+uses; a `.codex-plugin/` manifest is only Codex's fallback, so none is added (Codex plugin docs,
+developers.openai.com/codex/plugins/build, 2026-10-12). The three manifests carry the same `name`
+(`android-workflow`), `version` and `description`.
 
 ### 5.1 One `hooks/hooks.json` for three hosts
 
@@ -168,7 +172,7 @@ The three places that name Copilot today point to it instead: the `/mcp` sign-in
 ### 7.3 MCP
 
 The same Atlassian server (`https://mcp.atlassian.com/v1/mcp`), declared once per host format:
-`mcp.json` (Copilot), `.mcp.json` (Claude Code, Codex: `"type":"http","url"`) and
+`mcp.json` (Copilot, Codex), `.mcp.json` (Claude Code), both `"type":"http","url"`, and
 `gemini-extension.json` (`"httpUrl"`). No token in any file; each developer signs in with their own
 account; read-only, as now.
 
@@ -194,7 +198,7 @@ account; read-only, as now.
 
 Adds:
 
-- all four manifests share `name` and `version`
+- the three manifests and both marketplace entries share `name`, and the manifests share `version`
 - `hooks/hooks.json` matchers include each host's shell and edit tool names from section 4
 - every command in either `hooks.json` points to an executable file in the repository
 - no manifest or MCP file contains a credential-shaped value
@@ -219,4 +223,4 @@ Adds:
   unverified*); the canary and its limit.
 - README policy line: using Codex or Gemini on company work requires approval under the AI usage
   policy. This plugin supporting a tool does not approve it.
-- Version `0.3.0` in all four manifests. Run both test scripts before tagging, as now.
+- Version `0.3.0` in all three manifests. Run both test scripts before tagging, as now.
