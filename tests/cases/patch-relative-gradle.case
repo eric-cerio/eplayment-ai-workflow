@@ -1,0 +1,8 @@
+# expect: deny
+# match: versionCode
+# fixture: on-feature
+# hosts: codex
+# kind: edit
+# path: app/build.gradle
+# old: versionCode 60
+# new: versionCode 61

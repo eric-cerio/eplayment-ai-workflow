@@ -24,8 +24,10 @@ detect_host() {
 
 # patch_paths <patch text, JSON-escaped> — the files an apply_patch adds, updates or moves to.
 patch_paths() {
-  printf '%s' "$1" | awk '{ gsub(/\\n/, "\n"); print }' \
-    | sed -n -E -e 's/^\*\*\* (Add|Update) File: (.*)$/\2/p' -e 's/^\*\*\* Move to: (.*)$/\1/p'
+  # \n and \r arrive as two-character escapes; \r becomes a real CR so trailing-space stripping covers it.
+  printf '%s' "$1" | awk '{ gsub(/\\n/, "\n"); gsub(/\\r/, "\r"); print }' \
+    | sed -n -E -e 's/^\*\*\* (Add|Update) File: (.*)$/\2/p' -e 's/^\*\*\* Move to: (.*)$/\1/p' \
+    | sed -E 's/[[:space:]]+$//'
 }
 
 # decode <payload> — sets TOOL, KIND (shell|edit|other), CMD and EDIT_PATHS (one per line).

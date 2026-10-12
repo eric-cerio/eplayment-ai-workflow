@@ -1,0 +1,5 @@
+# expect: deny
+# match: versionCode
+# fixture: on-feature
+# reply: codex
+{"session_id":"s","turn_id":"t","hook_event_name":"PreToolUse","cwd":"$FIXTURE","tool_name":"apply_patch","tool_input":{"command":"*** Begin Patch\n*** Update File: notes.txt\n*** Move to: docs/notes.txt\n@@\n-a\n+b\n*** Add File: feature/build.gradle.kts\n+android { defaultConfig { versionCode = 1 } }\n*** End Patch\n"}}

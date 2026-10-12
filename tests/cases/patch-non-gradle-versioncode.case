@@ -1,0 +1,7 @@
+# expect: allow
+# fixture: on-feature
+# hosts: codex claude gemini copilot
+# kind: edit
+# path: $FIXTURE/docs/release.md
+# old: The version code is bumped by CI.
+# new: versionCode is bumped by CI, never by hand.
