@@ -4,7 +4,7 @@
 # raw payload, run once, its reply form named by '# reply:'.
 set -u
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-HOSTS="copilot"
+HOSTS="copilot claude codex gemini"
 pass=0; fail=0
 errf="$(mktemp)"
 hdr() { sed -n "s/^# $1: //p" "$2" | head -1; }

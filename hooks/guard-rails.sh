@@ -4,23 +4,31 @@ set -u
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 payload="$(cat)"
+explicit=""; [ "${1:-}" = "--host" ] && explicit="${2:-}"
 
 # Catastrophic path: the library is what defines allow/deny, so it cannot be relied on to report
 # its own absence. Emit a decision here, before sourcing, or a broken install silently allows.
-if ! . "$DIR/lib.sh" 2>/dev/null; then
+# Copilot's form for a Copilot payload (exit 0, verified); every other form, with exit 2, otherwise.
+fail_closed() {
   case "$payload" in
     *"git push"*|*"git commit"*|*"git add"*|*"git reset"*)
-      printf '{"permissionDecision":"deny","permissionDecisionReason":"%s"}\n' \
-        "guard-rails hook could not load hooks/lib.sh; blocking this git command. Reinstall the plugin."
-      exit 0 ;;
+      r="guard-rails hook could not load its library; blocking this git command. Reinstall the plugin."
+      case "$payload" in
+        *'"toolArgs"'*) printf '{"permissionDecision":"deny","permissionDecisionReason":"%s"}\n' "$r"; exit 0 ;;
+      esac
+      printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"%s"},"decision":"deny","reason":"%s"}\n' "$r" "$r"
+      printf '%s\n' "$r" >&2
+      exit 2 ;;
   esac
   printf '{}\n'
   exit 0
-fi
+}
+{ . "$DIR/lib.sh" && . "$DIR/codec.sh"; } 2>/dev/null || fail_closed
+
+HOOK_HOST="$(detect_host "$payload" "$explicit")"
+decode "$payload"
 cwd="$(json_field "$payload" cwd)"; [ -n "$cwd" ] || cwd="$PWD"
-tool="$(json_field "$payload" toolName)"
-cmd="$(json_field "$payload" command)"
-path="$(json_field "$payload" path)"; [ -n "$path" ] || path="$(json_field "$payload" file_path)"
+cmd="$CMD"
 
 # Fail closed for git commands that write, open for everything else.
 writes_git=0
@@ -42,7 +50,7 @@ protected="$(printf 'develop\nmain\nmaster\n%s\n' "$(cfg_list "$cfg" protected_b
 branch="$(current_branch "$root")"
 is_protected() { printf '%s\n' "$protected" | grep -qx -- "$1"; }
 
-if [ -n "$cmd" ]; then
+if [ "$KIND" = shell ] && [ -n "$cmd" ]; then
   case "$cmd" in
     *"git push"*)
       case "$cmd" in
@@ -85,15 +93,15 @@ if [ -n "$cmd" ]; then
   esac
 fi
 
-# File edits: versionCode inside a Gradle file.
-case "$tool" in
-  edit|create|str_replace_editor|apply_patch|write)
-    case "$path" in
-      *.gradle|*.gradle.kts)
-        case "$payload" in
-          *versionCode*) deny "Blocked: versionCode is owned by CI and release, never by this workflow." ;;
-        esac ;;
-    esac ;;
-esac
+# File edits: versionCode inside a Gradle file. The whole payload is searched, not one field, so an
+# edit list (MultiEdit) or a patch is covered as well as a single replacement.
+if [ "$KIND" = edit ]; then
+  case "$payload" in
+    *versionCode*)
+      if printf '%s\n' "$EDIT_PATHS" | grep -qE '\.gradle(\.kts)?$'; then
+        deny "Blocked: versionCode is owned by CI and release, never by this workflow."
+      fi ;;
+  esac
+fi
 
 allow

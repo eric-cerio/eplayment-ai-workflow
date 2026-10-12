@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
-# Shared helpers for the Copilot hooks. No jq, no python: neither is guaranteed on a dev Mac.
+# Shared helpers for the hooks. No jq, no python: neither is guaranteed on a dev Mac.
 #
 # Payload shape (verified 2026-09-21, Copilot CLI 1.0.85):
 #   {"sessionId":"…","timestamp":123,"cwd":"/path","toolName":"bash",
 #    "toolArgs":{"command":"git push …","description":"…"}}
 # toolArgs is a nested OBJECT, not an escaped JSON string.
+# Other hosts' shapes, and allow/deny/advise: codec.sh.
 
-allow() { printf '{}\n'; exit 0; }
-deny()  { printf '{"permissionDecision":"deny","permissionDecisionReason":"%s"}\n' \
-            "$(printf '%s' "$1" | sed 's/"/\\"/g')"; exit 0; }
 
 # json_field <json> <key> — a string field anywhere in the payload, JSON-unescaped.
 # BSD sed has no GNU alternation in BRE, so these use -E (ERE), which macOS and Linux both have.

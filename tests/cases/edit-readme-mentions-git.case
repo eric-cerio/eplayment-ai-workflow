@@ -1,0 +1,6 @@
+# expect: allow
+# fixture: on-feature
+# kind: edit
+# path: $FIXTURE/README.md
+# old: Push your branch.
+# new: Run git push origin develop only through a release.

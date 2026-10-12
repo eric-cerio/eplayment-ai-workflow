@@ -7,7 +7,8 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 payload="$(cat)"
 
 # A broken library must not break editing: this hook allows on any failure.
-. "$DIR/lib.sh" 2>/dev/null || { printf '{}\n'; exit 0; }
+{ . "$DIR/lib.sh" && . "$DIR/codec.sh"; } 2>/dev/null || { printf '{}\n'; exit 0; }
+HOOK_HOST=copilot
 
 tool="$(json_field "$payload" toolName)"
 case "$tool" in edit|create|str_replace_editor|apply_patch|write) ;; *) allow ;; esac
