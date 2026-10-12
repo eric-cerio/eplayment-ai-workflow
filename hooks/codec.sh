@@ -10,7 +10,14 @@
 
 # detect_host <payload> [explicit] — the explicit --host value wins; otherwise the payload's shape.
 detect_host() {
-  if [ -n "${2:-}" ]; then printf '%s' "$2"; return; fi
+  if [ -n "${2:-}" ]; then
+    case "$2" in
+      codex) printf 'claude' ;;
+      copilot|claude|gemini) printf '%s' "$2" ;;
+      *) printf 'unknown' ;;
+    esac
+    return
+  fi
   case "$1" in
     *'"toolArgs"'*) printf 'copilot' ;;
     *'"tool_input"'*)
@@ -24,8 +31,8 @@ detect_host() {
 
 # patch_paths <patch text, JSON-escaped> — the files an apply_patch adds, updates or moves to.
 patch_paths() {
-  # \n and \r arrive as two-character escapes; \r becomes a real CR so trailing-space stripping covers it.
-  printf '%s' "$1" | awk '{ gsub(/\\n/, "\n"); gsub(/\\r/, "\r"); print }' \
+  # \n, \r and \t arrive as two-character escapes; \r and \t become real characters so trailing-space stripping covers it.
+  printf '%s' "$1" | awk '{ gsub(/\\n/, "\n"); gsub(/\\r/, "\r"); gsub(/\\t/, "\t"); print }' \
     | sed -n -E -e 's/^\*\*\* (Add|Update) File: (.*)$/\2/p' -e 's/^\*\*\* Move to: (.*)$/\1/p' \
     | sed -E 's/[[:space:]]+$//'
 }

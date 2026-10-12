@@ -88,15 +88,30 @@ for case_file in "$root"/tests/cases/*.case; do
   [ -n "$dir" ] && rm -rf "$dir"
 done
 
-# Fail-closed: a hook that cannot load its library must still block git writes.
-lib="$root/hooks/lib.sh"
-chmod 000 "$lib"
-fc_out="$(printf '{"cwd":"%s","toolName":"bash","toolArgs":{"command":"git push origin feature/x"}}' "$root" | "$root/hooks/guard-rails.sh" 2>/dev/null)"
-chmod 644 "$lib"
-case "$fc_out" in
-  *'"deny"'*) pass=$((pass+1)) ;;
-  *) fail=$((fail+1)); printf 'FAIL fail-closed-without-lib\n  expected: deny\n  got: %s\n' "$fc_out" ;;
-esac
+# Fail-closed: a hook that cannot load lib.sh or codec.sh must still block git writes and the
+# canary, on every host, in that host's form.
+fc_case="$(mktemp)"
+for broken in lib.sh codec.sh; do
+  for cmd in 'git push origin feature/x' ': android-workflow-rails-canary'; do
+    printf '# kind: shell\n# cmd: %s\n' "$cmd" > "$fc_case"
+    chmod 000 "$root/hooks/$broken"
+    for host in $HOSTS; do
+      payload="$("$root/tests/payloads/render.sh" "$host" "$fc_case" "$root")"
+      if [ "$host" = gemini ]; then
+        run_one "fail-closed-$broken[$host] $cmd" "$host" guard-rails.sh deny "could not load" "$payload" --host gemini
+      else
+        run_one "fail-closed-$broken[$host] $cmd" "$host" guard-rails.sh deny "could not load" "$payload"
+      fi
+    done
+    chmod 644 "$root/hooks/$broken"
+  done
+done
+rm -f "$fc_case"
+
+# An explicit --host is normalised: codex speaks the Claude form, anything unlisted is unknown.
+dh_out="$( cd "$root" && . hooks/lib.sh && . hooks/codec.sh && detect_host '{}' codex && echo && detect_host '{}' bogus )"
+if [ "$dh_out" = "$(printf 'claude\nunknown')" ]; then pass=$((pass+1))
+else fail=$((fail+1)); printf 'FAIL detect-host-explicit-normalised\n  got: %s\n' "$dh_out"; fi
 
 # The diff fingerprint, taken from its contract in shared/ticket-file.md, must change when a new
 # (untracked) file's contents change — else a pass survives code added after the gate — and must

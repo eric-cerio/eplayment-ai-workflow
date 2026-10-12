@@ -11,8 +11,8 @@ explicit=""; [ "${1:-}" = "--host" ] && explicit="${2:-}"
 # Copilot's form for a Copilot payload (exit 0, verified); every other form, with exit 2, otherwise.
 fail_closed() {
   case "$payload" in
-    *"git push"*|*"git commit"*|*"git add"*|*"git reset"*)
-      r="guard-rails hook could not load its library; blocking this git command. Reinstall the plugin."
+    *android-workflow-rails-canary*|*"git push"*|*"git commit"*|*"git add"*|*"git reset"*)
+      r="guard-rails hook could not load its library; blocking this command. Reinstall the plugin."
       case "$payload" in
         *'"toolArgs"'*) printf '{"permissionDecision":"deny","permissionDecisionReason":"%s"}\n' "$r"; exit 0 ;;
       esac
@@ -27,8 +27,16 @@ fail_closed() {
 
 HOOK_HOST="$(detect_host "$payload" "$explicit")"
 decode "$payload"
+# The canary (shared/rails-check.md) proves this hook runs. It is answered before anything else, in
+# every repository, so the answer depends on nothing but the hook being wired in.
+case "$payload" in
+  *android-workflow-rails-canary*) deny "rails live: the android-workflow guard hook is running." ;;
+esac
 cwd="$(json_field "$payload" cwd)"; [ -n "$cwd" ] || cwd="$PWD"
 cmd="$CMD"
+# A tool the codec does not list (or a payload in no known shape): the rails cannot be applied, so
+# git writes are refused rather than waved through. Its command is still findable for that decision.
+[ "$KIND" = other ] && cmd="$(json_field "$payload" command)"
 
 # Fail closed for git commands that write, open for everything else.
 writes_git=0
@@ -43,6 +51,10 @@ root="$(repo_root "$cwd")" || allow
 [ -n "$root" ] || allow
 has_workflow_config "$root" || allow
 cfg="$root/.ai/project/android-workflow.yml"
+if [ "$KIND" = other ]; then
+  [ "$writes_git" -eq 1 ] && deny "Blocked: the guard hook did not recognize this tool's payload, so it cannot check this git command. Run tests/run.sh."
+  allow
+fi
 
 # The configured list is a superset request, never a way to unprotect the three base branches:
 # a config narrowed by hand (or by a mistaken onboarding) cannot open a hole here.

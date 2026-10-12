@@ -1,0 +1,5 @@
+# expect: deny
+# match: rails live
+# fixture: no-config
+# kind: shell
+# cmd: : android-workflow-rails-canary

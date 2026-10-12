@@ -1,0 +1,4 @@
+# expect: allow
+# fixture: on-feature
+# reply: unknown
+{"cwd":"$FIXTURE","tool":"shell","args":{"command":"ls"}}
